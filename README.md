@@ -17,6 +17,24 @@ npm install
 npm run deploy
 ```
 
+## Rutas del API
+
+El servicio expone las siguientes rutas principales:
+
+### Autenticación
+
+- `/auth`: Endpoints relacionados con la autenticación de usuarios y gestión de sesiones.
+
+### Rutas Protegidas
+
+Las siguientes rutas requieren autenticación mediante token JWT:
+
+- `/user`: Gestión de perfiles de usuario y configuraciones personales.
+- `/assessment`: Evaluaciones y pruebas vocacionales.
+- `/career`: Información sobre carreras universitarias y programas académicos.
+- `/recommendation`: Sistema de recomendaciones personalizadas basadas en el perfil del usuario.
+- `/plan`: Generación y gestión de planes de estudio personalizados.
+
 ## Modelo de prioridades del prototipo e infraestructura del servicio
 
 ```
@@ -73,6 +91,6 @@ career-path-api/
 ├── .env.example           # Ejemplo de variables de entorno
 ├── package.json           # Dependencias del proyecto
 ├── docker-compose.yml     # Configuración de Docker
-├── Dockerfile             # Definición de la imagen Docker
-└── server.js              # Punto de entrada de la aplicación
+├── Dockerfile            # Definición de la imagen Docker
+└── server.js             # Punto de entrada de la aplicación
 ```
