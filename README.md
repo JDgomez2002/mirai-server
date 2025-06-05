@@ -6,9 +6,13 @@
 
 El presente repositorio presenta el desarrollo del servicio y su infraestructura para abastecer un sistema inteligente de orientación vocacional, generación de temarios de estudio a medida y generación de sugerencias de especialización profesional, enfocado a estudiantes graduandos con aspiración a estudiar una licenciatura.
 
-## Diagrama del prototipo inicial del sistema (Mayo 2025)
+## Esquema del prototipo inicial del sistema
 
-![Diagrama del prototipo Mayo 2025](./assets/diagrama.png?raw=true "Diagrama del prototipo Mayo 2025")
+![Diagrama del prototipo Mayo 2025](./assets/diagrama.png?raw=true "Esquema del prototipo")
+
+## Diagrama del prototipo inicial del sistema
+
+![Diagrama del prototipo Mayo 2025](./assets/prototype.png?raw=true "Diagrama del Prototipo")
 
 ## Instrucciones de ejecución
 
