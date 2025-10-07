@@ -15,7 +15,10 @@ export const handler = async (event, context) => {
     await mongoose.connect(uri);
 
     const {
-      data: { id },
+      data: {
+        id,
+        unsafe_metadata: { role },
+      },
     } = JSON.parse(event.body);
 
     if (!id) {
@@ -38,6 +41,7 @@ export const handler = async (event, context) => {
     const user = new UserModel({
       clerk_id: id,
       created_at: new Date(),
+      role: role ?? "student",
     });
 
     // create the user

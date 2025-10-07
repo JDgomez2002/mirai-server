@@ -10,7 +10,12 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-  // TODO: add public metadata: school, age, gender, country, etc...
+  role: {
+    type: String,
+    required: true,
+    enum: ["admin", "teacher", "director", "publisher", "student"],
+    default: "student",
+  },
 });
 
 export const UserModel = mongoose.model("User", UserSchema);
