@@ -162,6 +162,12 @@ Each feature is independently deployable. To work on a specific feature:
 
 Each Lambda function should be deployed separately with its dependencies and environment variables configured.
 
+Zip the project into the lambda function.
+
+```
+zip -r function.zip .
+```
+
 ## Contributing
 
 When adding new features:
