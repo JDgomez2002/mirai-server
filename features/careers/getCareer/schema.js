@@ -1,6 +1,22 @@
 import mongoose from "mongoose";
 const { Schema, Types } = mongoose;
 
+// Course schema for plan_de_estudio (embedded, not referenced)
+const EmbeddedCourseSchema = new Schema(
+  {
+    id: {
+      type: Types.ObjectId,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+  },
+  { _id: false }
+);
+
+// Standalone Course model (for other uses, if needed)
 const CourseSchema = new Schema({
   nombre: {
     type: String,
@@ -15,10 +31,10 @@ const CourseSchema = new Schema({
     },
   ],
 });
+export const CourseModel =
+  mongoose.models.Course || mongoose.model("Course", CourseSchema);
 
-export const CourseModel = mongoose.model("Course", CourseSchema);
-
-// Register the Tag schema and model so that mongoose knows about "Tag"
+// Tag model
 const TagSchema = new Schema(
   {
     name: {
@@ -34,11 +50,9 @@ const TagSchema = new Schema(
     timestamps: false,
   }
 );
+export const TagModel = mongoose.models.Tag || mongoose.model("Tag", TagSchema);
 
-// Only register if not already registered (prevents OverwriteModelError in Lambda)
-export const TagModel = mongoose.model("Tag", TagSchema);
-
-// This is the embedded tag reference used in Career
+// Embedded tag for Career
 const EmbeddedTagSchema = new Schema(
   {
     tag: {
@@ -84,7 +98,7 @@ const CareerSchema = new Schema(
     empleabilidad: {
       type: String,
       required: true,
-      enum: ["baja", "media", "alta"],
+      enum: ["baja", "media", "alta", "muy alta"],
     },
     areas_de_desarrollo_potencial: [
       {
@@ -100,74 +114,24 @@ const CareerSchema = new Schema(
     ],
     plan_de_estudio: {
       año_1: {
-        primer_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
-        segundo_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
+        primer_semestre: [EmbeddedCourseSchema],
+        segundo_semestre: [EmbeddedCourseSchema],
       },
       año_2: {
-        primer_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
-        segundo_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
+        primer_semestre: [EmbeddedCourseSchema],
+        segundo_semestre: [EmbeddedCourseSchema],
       },
       año_3: {
-        primer_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
-        segundo_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
+        primer_semestre: [EmbeddedCourseSchema],
+        segundo_semestre: [EmbeddedCourseSchema],
       },
       año_4: {
-        primer_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
-        segundo_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
+        primer_semestre: [EmbeddedCourseSchema],
+        segundo_semestre: [EmbeddedCourseSchema],
       },
       año_5: {
-        primer_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
-        segundo_semestre: [
-          {
-            type: Types.ObjectId,
-            ref: "Course",
-          },
-        ],
+        primer_semestre: [EmbeddedCourseSchema],
+        segundo_semestre: [EmbeddedCourseSchema],
       },
     },
     areas_de_formacion: [
@@ -178,7 +142,7 @@ const CareerSchema = new Schema(
         },
         descripcion: {
           type: String,
-          default: "",
+          required: true,
         },
       },
     ],
@@ -189,6 +153,7 @@ const CareerSchema = new Schema(
     competencias_desarrolladas: [
       {
         type: String,
+        required: true,
       },
     ],
     salario_minimo: {
@@ -211,4 +176,5 @@ const CareerSchema = new Schema(
   }
 );
 
-export const CareerModel = mongoose.model("Career", CareerSchema);
+export const CareerModel =
+  mongoose.models.Career || mongoose.model("Career", CareerSchema);
