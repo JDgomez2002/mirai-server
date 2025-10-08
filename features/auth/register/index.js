@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { UserModel } from "./schema.js";
 import dotenv from "dotenv";
+import { encrypt } from "./crypto.utils.js";
 
 dotenv.config();
 
@@ -17,6 +18,12 @@ export const handler = async (event, context) => {
     const {
       data: {
         id,
+        first_name,
+        last_name,
+        username,
+        image_url,
+        primary_email_address_id,
+        email_addresses,
         unsafe_metadata: { role },
       },
     } = JSON.parse(event.body);
@@ -37,9 +44,18 @@ export const handler = async (event, context) => {
       };
     }
 
+    const email = email_addresses.find(
+      (e) => e.id === primary_email_address_id
+    );
+
     // initialize user
     const user = new UserModel({
       clerk_id: id,
+      first_name: encrypt(first_name),
+      last_name: encrypt(last_name),
+      username: encrypt(username),
+      image_url: encrypt(image_url),
+      email: encrypt(email.email_address),
       created_at: new Date(),
       role: role ?? "student",
     });
