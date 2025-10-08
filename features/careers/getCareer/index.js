@@ -45,15 +45,6 @@ export const handler = async (event, context) => {
       };
     }
 
-    // Populate all courses in the plan_de_estudio (primer_semestre and segundo_semestre for each year) manually
-    // Populate plan_de_estudio with full course objects, preserving the structure
-
-    // const study_plan = career.plan_de_estudio;
-    // const years = Object.keys(study_plan);
-
-    // console.log("study_plan:", study_plan);
-    // console.log("years:", years);
-
     return {
       statusCode: 200,
       body: JSON.stringify({
