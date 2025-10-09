@@ -1,15 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const publicKey = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1vwd9UkPUK/xQDYe/+wP
-oNQ7t6rIbuOiNQGBpFeLKTNEvR4uE5wAWy+IYuXBrjIEYya/o0zQBAYsH92G+hNB
-1U56JVKxaSLmWldpxlUTgFlVGgsMbCkbnB9FOgHyHeN9I+GfoqB4MQxiBRCBrzXx
-yH0U3cGFlBLHrSo3cwUt6Aq9s8F7J7aIVwqYcQ5yGpRy+NQVLbecFA/Uix6v6DMl
-wMrVIy1mCQnmVdu1qU8d7ZiUzQxaOhlMDug5fkJHYkwgbjzNXj951N4hhxTtwkCv
-hjyTO2xYAbsf4IzqoV62x5QUhsLTopl/VB2K8Z+OJq1t3dpI+R1UDXJbMWW83QqX
-SwIDAQAB
------END PUBLIC KEY-----
-`;
+const publicKey = process.env.PUBLIC_KEY.replace(/\\n/g, "\n");
 
 export async function handler(event, context, callback) {
   try {
@@ -19,10 +10,22 @@ export async function handler(event, context, callback) {
     // Verifies and decodes the JWT
     const claims = jwt.verify(token, publicKey);
 
+    const decode = jwt.decode(token);
+
+    console.log("decode:", decode);
+    console.log("claims:", claims);
+
+    // Attach the user id from Clerk into the metadata
+    // We'll ensure metadata exists and add user_id to it
+    const metadata = {
+      ...(claims.metadata || {}),
+      user_id: claims.sub,
+    };
+
     // If the token is valid, the user is authorized
     callback(
       null,
-      generatePolicy(claims.metadata, claims.sub, "Allow", event.methodArn)
+      generatePolicy(metadata, claims.sub, "Allow", event.methodArn)
     );
   } catch (err) {
     // If verification fails, deny access
