@@ -18,11 +18,9 @@ export const handler = async (event, context) => {
     const { id: forumId } = event.pathParameters || {};
     const { content } = JSON.parse(event.body || "{}");
 
-    // You may need to adjust this depending on your auth setup
-    const userId =
-      event.requestContext &&
-      event.requestContext.authorizer &&
-      event.requestContext.authorizer.user_id;
+    // Extract user_id from the Lambda authorizer context
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
+    console.log("User ID from authorizer:", userId);
 
     // Validate required fields
     const missingFields = [];
