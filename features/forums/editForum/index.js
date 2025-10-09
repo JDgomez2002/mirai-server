@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ForumModel } from "./schema.js";
+import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -16,7 +16,10 @@ export const handler = async (event, context) => {
 
     // Get the forum ID from query parameters or path parameters
     const forumId = event.pathParameters?.id || event.queryStringParameters?.id;
-    const { title, description, active } = JSON.parse(event.body);
+    const { title, description, final_date } = JSON.parse(event.body);
+
+    // Extract user_id from the Lambda authorizer context
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
 
     // Validate that ID is provided
     if (!forumId) {
@@ -38,6 +41,17 @@ export const handler = async (event, context) => {
       };
     }
 
+    const user = await UserModel.findOne({ clerk_id: userId });
+
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: "User not found",
+        }),
+      };
+    }
+
     // Find the forum by MongoDB _id
     const forum = await ForumModel.findById(forumId);
 
@@ -50,10 +64,26 @@ export const handler = async (event, context) => {
       };
     }
 
+    // verify that the user is the creator of the forum, just admins and the creator can edit the forum
+    if (
+      // check if the user is the creator of the forum
+      user._id.toString() !== forum.creator_id.toString() &&
+      // check if the user is an admin
+      user.role !== "admin"
+    ) {
+      // if the user is not the creator of the forum and not an admin, return a forbidden error
+      return {
+        statusCode: 403,
+        body: JSON.stringify({
+          message: "Forbidden: Only admins and the creator can edit the forum",
+        }),
+      };
+    }
+
     // update the forum just with the fields that are provided
     if (title) forum.title = title;
     if (description) forum.description = description;
-    if (active) forum.active = active;
+    if (final_date) forum.final_date = final_date;
 
     // save the forum
     await forum.save();
