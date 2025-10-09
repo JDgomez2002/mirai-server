@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ForumModel } from "./schema.js";
+import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,7 +10,7 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event) => {
   try {
     await mongoose.connect(uri);
 
