@@ -1,26 +1,69 @@
+// @ts-nocheck
 import jwt from "jsonwebtoken";
 
 const publicKey = process.env.PUBLIC_KEY.replace(/\\n/g, "\n");
 
 export async function handler(event, context, callback) {
   try {
+    // Log the incoming authorization token (masked for security)
+    console.log("Authorization attempt:", {
+      hasToken: !!event.authorizationToken,
+      tokenPrefix: event.authorizationToken
+        ? event.authorizationToken.substring(0, 10) + "..."
+        : "none",
+      methodArn: event.methodArn,
+    });
+
+    // Check if authorizationToken exists
+    if (!event.authorizationToken) {
+      console.error("Missing authorizationToken in event");
+      return callback(
+        null,
+        generatePolicy(null, "unknown", "Deny", event.methodArn)
+      );
+    }
+
     // Extract the token from the Authorization header
-    const token = event.authorizationToken.split(" ")[1];
+    const tokenParts = event.authorizationToken.split(" ");
 
-    // Verifies and decodes the JWT
-    const claims = jwt.verify(token, publicKey);
+    if (tokenParts.length !== 2 || tokenParts[0] !== "Bearer") {
+      console.error(
+        "Invalid token format. Expected 'Bearer <token>', got:",
+        tokenParts[0]
+      );
+      return callback(
+        null,
+        generatePolicy(null, "unknown", "Deny", event.methodArn)
+      );
+    }
 
-    const decode = jwt.decode(token);
+    const token = tokenParts[1];
 
-    console.log("decode:", decode);
+    if (!token) {
+      console.error("Token is empty after extraction");
+      return callback(
+        null,
+        generatePolicy(null, "unknown", "Deny", event.methodArn)
+      );
+    }
+
+    // Verifies and decodes the JWT with clock tolerance
+    const claims = jwt.verify(token, publicKey, {
+      clockTolerance: 10, // Allow 10 seconds of clock skew
+    });
     console.log("claims:", claims);
 
     // Attach the user id from Clerk into the metadata
     // We'll ensure metadata exists and add user_id to it
     const metadata = {
-      ...(claims.metadata || {}),
-      user_id: claims.sub,
+      user_id: claims.sub || claims.user_id,
     };
+
+    console.log(
+      "Authorization successful for user:",
+      claims.sub,
+      claims?.first_name
+    );
 
     // If the token is valid, the user is authorized
     callback(
@@ -28,12 +71,24 @@ export async function handler(event, context, callback) {
       generatePolicy(metadata, claims.sub, "Allow", event.methodArn)
     );
   } catch (err) {
+    // Log the specific error for debugging
+    console.error("Authorization failed:", err, {
+      error: err.message,
+      name: err.name,
+      stack: err.stack,
+    });
+
     // If verification fails, deny access
     callback(null, generatePolicy(null, "unknown", "Deny", event.methodArn));
   }
 }
 
 function generatePolicy(metadata, principalId, effect, resource) {
+  // Use wildcard resource to allow access to all endpoints in the API
+  // This prevents caching issues when switching between different endpoints
+  // Format: arn:aws:execute-api:region:account-id:api-id/*
+  const wildcardResource = resource.split("/").slice(0, -2).join("/") + "/*";
+
   const authResponse = {
     principalId: principalId,
     policyDocument: {
@@ -42,7 +97,7 @@ function generatePolicy(metadata, principalId, effect, resource) {
         {
           Action: "execute-api:Invoke",
           Effect: effect,
-          Resource: resource,
+          Resource: wildcardResource,
         },
       ],
     },
@@ -50,5 +105,13 @@ function generatePolicy(metadata, principalId, effect, resource) {
   if (metadata) {
     authResponse.context = metadata;
   }
+
+  console.log("Generated policy:", {
+    effect,
+    originalResource: resource,
+    wildcardResource,
+    principalId,
+  });
+
   return authResponse;
 }
