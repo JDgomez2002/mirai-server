@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import { CardModel } from "./schema.js";
 import dotenv from "dotenv";
-import { randomUUID } from "crypto";
 
 dotenv.config();
 
@@ -11,11 +10,11 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
 
-    const { type, title, content, tags, imageUrl, priority, color } =
+    const { type, title, content, tags, priority, color, display_data } =
       JSON.parse(event.body);
 
     // Validate required fields
@@ -23,15 +22,23 @@ export const handler = async (event, context) => {
     if (!type) missingFields.push("type");
     if (!title) missingFields.push("title");
     if (!content) missingFields.push("content");
-    if (!imageUrl) missingFields.push("imageUrl");
-    if (priority === undefined || priority === null)
-      missingFields.push("priority");
 
     if (missingFields.length > 0) {
       return {
         statusCode: 400,
         body: JSON.stringify({
           message: `Missing required fields: [${missingFields.join(", ")}]`,
+        }),
+      };
+    }
+
+    // just testimony and what_if are allowed to be created by the user
+    if (type !== "testimony" && type !== "what_if") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Only testimony and what_if are allowed to be created by the user",
         }),
       };
     }
@@ -52,10 +59,10 @@ export const handler = async (event, context) => {
       title,
       content,
       tags: Array.isArray(tags) ? tags : [],
-      imageUrl,
-      priority,
+      priority: priority ?? 0,
       created_at: new Date(),
       color: color || colors[Math.floor(Math.random() * colors.length)],
+      display_data,
     });
 
     // Create the card
