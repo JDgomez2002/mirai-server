@@ -38,7 +38,14 @@ export const handler = async (event) => {
     }
 
     // Find the forum by MongoDB _id
-    const forum = await ForumModel.findById(forumId);
+    // populate the creator_id with user._id, user.first_name, user.last_name and user.role
+    // for both comments and answers.
+    // also populate career_id with career.nombre_carrera and career.facultad
+    const forum = await ForumModel.findById(forumId)
+      .populate("creator_id", "first_name last_name role")
+      .populate("comments.user_id", "first_name last_name role")
+      .populate("comments.answers.user_id", "first_name last_name role")
+      .populate("career_id", "nombre_carrera facultad");
 
     if (!forum) {
       return {
@@ -61,9 +68,10 @@ export const handler = async (event) => {
       statusCode: 200,
       body: JSON.stringify({
         forum: {
-          ...forum,
-          comments: forum.comments.length,
-          participants: participants.length,
+          // put all fields because ..forum is a mongoose document and attach extra fields
+          ...forum.toObject(),
+          comments_count: forum.comments.length,
+          participants_count: participants.length,
         },
       }),
     };

@@ -16,6 +16,11 @@ const AnswerSchema = new Schema({
     default: Date.now,
     required: true,
   },
+  edited: {
+    type: Boolean,
+    default: false,
+    required: true,
+  },
 });
 
 const CommentSchema = new Schema({
@@ -36,6 +41,11 @@ const CommentSchema = new Schema({
   answers: {
     type: [AnswerSchema],
     default: [],
+  },
+  edited: {
+    type: Boolean,
+    default: false,
+    required: true,
   },
 });
 
