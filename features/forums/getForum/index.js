@@ -1,6 +1,8 @@
+// @ts-nocheck
 import mongoose from "mongoose";
 import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
+import { decrypt } from "./crypto.utils.js";
 
 dotenv.config();
 
@@ -42,9 +44,12 @@ export const handler = async (event) => {
     // for both comments and answers.
     // also populate career_id with career.nombre_carrera and career.facultad
     const forum = await ForumModel.findById(forumId)
-      .populate("creator_id", "first_name last_name role")
-      .populate("comments.user_id", "first_name last_name role")
-      .populate("comments.answers.user_id", "first_name last_name role")
+      .populate("creator_id", "first_name last_name role image_url")
+      .populate("comments.user_id", "first_name last_name role image_url")
+      .populate(
+        "comments.answers.user_id",
+        "first_name last_name role image_url"
+      )
       .populate("career_id", "nombre_carrera facultad");
 
     if (!forum) {
@@ -64,12 +69,66 @@ export const handler = async (event) => {
       });
     }
 
+    // format comments to have user instead of user_id as key of the object
+    const comments = forum.comments.map((comment) => {
+      // also format answers to have user instead of user_id as key of the object
+      const answers = comment.answers.map((answer) => {
+        return {
+          _id: answer._id,
+          content: answer.content,
+          created_at: answer.created_at,
+          user: {
+            _id: answer.user_id._id,
+            first_name: decrypt(answer.user_id.first_name),
+            last_name: decrypt(answer.user_id.last_name),
+            image_url: decrypt(answer.user_id.image_url),
+            role: answer.user_id.role,
+          },
+          edited: answer.edited,
+        };
+      });
+
+      return {
+        _id: comment._id,
+        content: comment.content,
+        created_at: comment.created_at,
+        answers,
+        user: {
+          _id: comment.user_id._id,
+          first_name: decrypt(comment.user_id.first_name),
+          last_name: decrypt(comment.user_id.last_name),
+          image_url: decrypt(comment.user_id.image_url),
+          role: comment.user_id.role,
+        },
+        edited: comment.edited,
+      };
+    });
+
+    // format creator_id to have user instead of user_id as key of the object
+    const creator = {
+      ...forum.creator_id.toObject(),
+      first_name: decrypt(forum.creator_id.first_name),
+      last_name: decrypt(forum.creator_id.last_name),
+      image_url: decrypt(forum.creator_id.image_url),
+    };
+    // format career_id to have career instead of user_id as key of the object
+    const career = {
+      ...forum.career_id.toObject(),
+    };
+
     return {
       statusCode: 200,
       body: JSON.stringify({
         forum: {
-          // put all fields because ..forum is a mongoose document and attach extra fields
-          ...forum.toObject(),
+          _id: forum._id,
+          title: forum.title,
+          description: forum.description,
+          created_at: forum.created_at,
+          final_date: forum.final_date,
+          active: forum?.active,
+          creator,
+          career,
+          comments,
           comments_count: forum.comments.length,
           participants_count: participants.length,
         },
