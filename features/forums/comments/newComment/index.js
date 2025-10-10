@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ForumModel } from "./schema.js";
+import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,7 +10,7 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
 
@@ -20,11 +20,10 @@ export const handler = async (event, context) => {
 
     // Extract user_id from the Lambda authorizer context
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
-    console.log("User ID from authorizer:", userId);
 
     // Validate required fields
     const missingFields = [];
-    if (!forumId) missingFields.push("forumId (params.id)");
+    if (!forumId) missingFields.push("forumId (params: {id})");
     if (!userId) missingFields.push("userId (from current user)");
     if (!content) missingFields.push("content");
 
@@ -46,14 +45,6 @@ export const handler = async (event, context) => {
         }),
       };
     }
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: "Invalid MongoDB ObjectId for userId",
-        }),
-      };
-    }
 
     // Find the forum
     const forum = await ForumModel.findById(forumId);
@@ -66,26 +57,33 @@ export const handler = async (event, context) => {
       };
     }
 
+    const user = await UserModel.findById({ clerk_id: userId });
+
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: "User not found",
+        }),
+      };
+    }
+
     // Create the new comment
     const newComment = {
-      user_id: userId,
+      user_id: user._id,
       content,
       created_at: new Date(),
+      edited: false,
       answers: [],
     };
 
     forum.comments.push(newComment);
     await forum.save();
 
-    // Return the newly added comment (last in the array)
-    const addedComment = forum.comments[forum.comments.length - 1];
-
     return {
       statusCode: 201,
       body: JSON.stringify({
-        message: "Comment added",
-        comment: addedComment,
-        forumId: forum._id,
+        message: "Comment added successfully",
       }),
     };
   } catch (error) {
