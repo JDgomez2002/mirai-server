@@ -10,14 +10,15 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
 
     // Get the card ID from query parameters or path parameters
     const cardId = event.pathParameters?.id || event.queryStringParameters?.id;
-    const { type, title, content, tags, imageUrl, priority, color } =
-      JSON.parse(event.body);
+    const { title, content, tags, priority, color, display_data } = JSON.parse(
+      event.body
+    );
 
     // Validate that ID is provided
     if (!cardId) {
@@ -51,14 +52,24 @@ export const handler = async (event, context) => {
       };
     }
 
+    // just testimony and what_if are allowed to be edited by the user
+    if (card.type !== "testimony" && card.type !== "what_if") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Only testimony and what_if are allowed to be edited by the client",
+        }),
+      };
+    }
+
     // update the card just with the fields that are provided
-    if (type) card.type = type;
     if (title) card.title = title;
     if (content) card.content = content;
     if (tags) card.tags = tags;
-    if (imageUrl) card.imageUrl = imageUrl;
     if (priority) card.priority = priority;
     if (color) card.color = color;
+    if (display_data) card.display_data = display_data;
 
     // save the card
     await card.save();
