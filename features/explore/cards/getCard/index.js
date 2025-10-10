@@ -10,7 +10,7 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
 
