@@ -72,7 +72,7 @@ export const handler = async (event, _) => {
       };
     }
 
-    const user = await UserModel.findById({ clerk_id: userId });
+    const user = await UserModel.findOne({ clerk_id: userId });
 
     if (!user) {
       return {
