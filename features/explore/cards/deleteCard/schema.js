@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const CardSchema = new mongoose.Schema({
   type: {
     type: String,
+    enum: ["career", "what_if", "question", "testimony"],
     required: true,
   },
   title: {
@@ -16,14 +17,11 @@ const CardSchema = new mongoose.Schema({
   tags: {
     type: [String],
     default: [],
-  },
-  imageUrl: {
-    type: String,
-    required: true,
+    required: false,
   },
   priority: {
     type: Number,
-    required: true,
+    required: false,
   },
   created_at: {
     type: Date,
@@ -31,6 +29,10 @@ const CardSchema = new mongoose.Schema({
   },
   color: {
     type: String,
+    required: false,
+  },
+  display_data: {
+    type: Object,
     required: false,
   },
 });

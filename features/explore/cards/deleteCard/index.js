@@ -10,7 +10,7 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
 
@@ -45,6 +45,17 @@ export const handler = async (event, context) => {
         statusCode: 404,
         body: JSON.stringify({
           message: "Card not found",
+        }),
+      };
+    }
+
+    // just testimony and what_if are allowed to be deleted by the user
+    if (card.type !== "testimony" && card.type !== "what_if") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Only testimony and what_if are allowed to be deleted by the client",
         }),
       };
     }
