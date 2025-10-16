@@ -13,7 +13,7 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     required: true,
-    enum: ["admin", "teacher", "director", "publisher", "student"],
+    enum: ["admin", "teacher", "director", "student"],
     default: "student",
   },
   image_url: {
