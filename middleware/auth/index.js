@@ -86,8 +86,23 @@ export async function handler(event, context, callback) {
 function generatePolicy(metadata, principalId, effect, resource) {
   // Use wildcard resource to allow access to all endpoints in the API
   // This prevents caching issues when switching between different endpoints
-  // Format: arn:aws:execute-api:region:account-id:api-id/*
-  const wildcardResource = resource.split("/").slice(0, -2).join("/") + "/*";
+  // Format: arn:aws:execute-api:region:account-id:api-id/stage/*/*
+
+  // Extract ARN parts: arn:aws:execute-api:region:account-id:api-id/stage/METHOD/path
+  const arnParts = resource.split(":");
+  // First 5 parts: arn:aws:execute-api:region:account-id
+  const arnPrefix = arnParts.slice(0, 5).join(":");
+
+  // Last part contains: api-id/stage/METHOD/path
+  const apiGatewayPart = arnParts[5] || "";
+  const pathParts = apiGatewayPart.split("/");
+
+  // Extract api-id and stage
+  const apiId = pathParts[0];
+  const stage = pathParts[1] || "*";
+
+  // Create wildcard for all methods and paths in this stage
+  const wildcardResource = `${arnPrefix}:${apiId}/${stage}/*/*`;
 
   const authResponse = {
     principalId: principalId,
@@ -111,6 +126,7 @@ function generatePolicy(metadata, principalId, effect, resource) {
     originalResource: resource,
     wildcardResource,
     principalId,
+    stage,
   });
 
   return authResponse;
