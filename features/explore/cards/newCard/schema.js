@@ -15,7 +15,7 @@ const CardSchema = new mongoose.Schema({
     required: true,
   },
   tags: {
-    type: [String],
+    type: [Object],
     default: [],
     required: false,
   },
