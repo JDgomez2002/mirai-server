@@ -1,0 +1,171 @@
+import mongoose from "mongoose";
+import { CardModel } from "./schema.js";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const uri = process.env.URI;
+const backendUrl = process.env.BACKEND_URL;
+
+if (!uri) {
+  throw new Error("URI not found in the environment");
+}
+
+export const handler = async (event, _) => {
+  try {
+    await mongoose.connect(uri);
+
+    return await handleGetFeed(event);
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Error: " + error.message,
+      }),
+    };
+  } finally {
+    // Close the connection
+    await mongoose.connection.close();
+  }
+};
+
+const handleGetFeed = async (event) => {
+  try {
+    // Get authenticated user ID from authorizer
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
+    if (!userId) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ message: "Unauthorized: Missing user ID" }),
+      };
+    }
+
+    // Parse query parameters
+    const queryParams = event.queryStringParameters || {};
+    const limit = Math.min(parseInt(queryParams.limit) || 8, 20); // Max 20, default 8
+    const offset = parseInt(queryParams.offset) || 0;
+
+    // Find the user by clerk_id to get their MongoDB _id and user_tags
+    const db = mongoose.connection.db;
+    const user = await db
+      .collection("users")
+      .findOne({ clerk_id: userId }, { projection: { _id: 1, user_tags: 1 } });
+
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: "User not found" }),
+      };
+    }
+
+    const userTags = user.user_tags;
+    if (!userTags || userTags.length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "User tags not found. Please complete your profile first.",
+        }),
+      };
+    }
+
+    // Extract tag IDs from user tags
+    // Assuming user_tags structure: [{ tag: "tag_id", ... }, ...]
+    const userTagIds = userTags.map((tag) => tag.tag);
+
+    // Get cards using aggregation pipeline to match tags and sort by relevance
+    const aggregationPipeline = [
+      {
+        $match: {
+          "display_data.tags": {
+            $exists: true,
+            $ne: null,
+            $type: "array",
+          }, // Ensure tags field exists and is an array
+        },
+      },
+      {
+        $addFields: {
+          // Count how many user tags this card has (relevance)
+          matchingTagCount: {
+            $size: {
+              $filter: {
+                input: "$display_data.tags",
+                as: "cardTag",
+                cond: { $in: ["$$cardTag.id", userTagIds] },
+              },
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          matchingTagCount: { $gt: 0 }, // Only include cards with at least one matching tag
+        },
+      },
+      {
+        $sort: {
+          matchingTagCount: -1, // Sort by number of matching tags (most relevant first)
+          _id: 1, // Secondary sort by _id for consistent ordering
+        },
+      },
+    ];
+
+    // Get total count for pagination
+    const totalPipeline = [...aggregationPipeline, { $count: "total" }];
+    const totalResult = await db
+      .collection("cards")
+      .aggregate(totalPipeline)
+      .toArray();
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
+
+    // Get paginated cards
+    const cardsPipeline = [
+      ...aggregationPipeline,
+      { $skip: offset },
+      { $limit: limit },
+    ];
+    const cards = await db
+      .collection("cards")
+      .aggregate(cardsPipeline)
+      .toArray();
+
+    // Calculate pagination info
+    const hasMore = offset + limit < total;
+    const nextOffset = offset + limit;
+
+    // Build next batch URL
+    let nextBatchUrl = null;
+    if (hasMore) {
+      nextBatchUrl = `${backendUrl}/explore/feed?offset=${nextOffset}&limit=${limit}`;
+    }
+
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        data: cards,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore,
+          nextOffset: hasMore ? nextOffset : null,
+        },
+        recommendations: {
+          nextBatchUrl,
+        },
+      }),
+    };
+  } catch (error) {
+    console.error("Error fetching feed:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Error fetching feed: " + error.message,
+      }),
+    };
+  }
+};
