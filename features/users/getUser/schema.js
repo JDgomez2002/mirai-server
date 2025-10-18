@@ -36,6 +36,13 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: false,
   },
+  user_tags: [
+    {
+      tag: { type: mongoose.Schema.Types.ObjectId, required: true },
+      name: { type: String, required: true },
+      score: { type: Number, required: true },
+    },
+  ],
 });
 
 export const UserModel = mongoose.model("User", UserSchema);

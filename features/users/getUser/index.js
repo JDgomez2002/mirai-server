@@ -45,6 +45,7 @@ export const handler = async (event, _) => {
           username: encrypt(decrypt(user.username)),
           email: encrypt(decrypt(user.email)),
           role: encrypt(user.role),
+          tags: user.user_tags,
         },
       }),
     };
