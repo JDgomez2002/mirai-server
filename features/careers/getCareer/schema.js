@@ -170,6 +170,11 @@ const CareerSchema = new Schema(
       default: "USD",
     },
     tags: [EmbeddedTagSchema],
+    insights: {
+      type: Object,
+      required: false,
+      default: {},
+    },
   },
   {
     timestamps: true,
