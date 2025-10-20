@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { UserModel } from "./schema.js";
 import dotenv from "dotenv";
 import { encrypt } from "./crypto.utils.js";
 
@@ -11,9 +10,12 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
+    const db = mongoose.connection.db;
+
+    console.log("EVENT:", JSON.stringify(event, null, 2));
 
     const {
       data: {
@@ -24,7 +26,7 @@ export const handler = async (event, context) => {
         image_url,
         primary_email_address_id,
         email_addresses,
-        unsafe_metadata: { role },
+        // unsafe_metadata: { role },
       },
     } = JSON.parse(event.body);
 
@@ -36,8 +38,8 @@ export const handler = async (event, context) => {
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ clerk_id: id });
-    if (!existingUser) {
+    const user = await db.collection("users").findOne({ clerk_id: id });
+    if (!user) {
       return {
         statusCode: 404,
         body: JSON.stringify({ message: "User not found" }),
@@ -56,10 +58,11 @@ export const handler = async (event, context) => {
       username: encrypt(username),
       image_url: encrypt(image_url),
       email: email ? encrypt(email.email_address) : null,
-      role: role ?? existingUser.role,
     };
 
-    await UserModel.updateOne({ clerk_id: id }, { $set: updateFields });
+    await db
+      .collection("users")
+      .updateOne({ clerk_id: id }, { $set: updateFields });
 
     return {
       statusCode: 200,
