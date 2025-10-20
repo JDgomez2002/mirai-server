@@ -24,7 +24,7 @@ export const handler = async (event, context) => {
         image_url,
         primary_email_address_id,
         email_addresses,
-        unsafe_metadata: { role },
+        // unsafe_metadata: { role },
       },
     } = JSON.parse(event.body);
 
@@ -57,7 +57,9 @@ export const handler = async (event, context) => {
       image_url: encrypt(image_url),
       email: encrypt(email.email_address),
       created_at: new Date(),
-      role: role ?? "student",
+      role: "student",
+      quizCompletedAt: null,
+      user_tags: [],
     });
 
     // create the user
