@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { UserModel } from "./schema.js";
 import dotenv from "dotenv";
 import { decrypt } from "./crypto.utils.js";
 import { encrypt } from "./traffic.crypto.js";
@@ -15,6 +14,7 @@ if (!uri) {
 export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
+    const db = mongoose.connection.db;
 
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
 
@@ -25,7 +25,7 @@ export const handler = async (event, _) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -46,6 +46,7 @@ export const handler = async (event, _) => {
           email: encrypt(decrypt(user.email)),
           role: encrypt(user.role),
           tags: user.user_tags,
+          quizCompletedAt: user.quizCompletedAt ?? null,
         },
       }),
     };
