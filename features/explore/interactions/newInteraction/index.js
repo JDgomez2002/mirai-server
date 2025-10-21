@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { InteractionModel, CardModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,9 +9,28 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+export const handler = async (event, _) => {
   try {
     await mongoose.connect(uri);
+    const db = mongoose.connection.db;
+
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: "Missing required fields: [userId]" }),
+      };
+    }
+
+    const user = await db.collection("users").findOne({ clerk_id: userId });
+
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ message: "User not found" }),
+      };
+    }
 
     const { cardId, action, duration, metadata } = JSON.parse(event.body);
 
@@ -54,7 +72,9 @@ export const handler = async (event, context) => {
     }
 
     // Find the card by MongoDB _id
-    const card = await CardModel.findById(cardId);
+    const card = await db
+      .collection("cards")
+      .findOne({ _id: new mongoose.Types.ObjectId(cardId) });
 
     if (!card) {
       return {
@@ -65,17 +85,49 @@ export const handler = async (event, context) => {
       };
     }
 
-    // Initialize interaction
-    const interaction = new InteractionModel({
+    const { insertedId } = await db.collection("interactions").insertOne({
       cardId,
       action,
       duration,
       metadata,
-      created_at: new Date(),
+      createdAt: new Date(),
+      userId: user._id,
     });
 
-    // Create the interaction
-    await interaction.save();
+    const interaction = await db
+      .collection("interactions")
+      .findOne({ _id: insertedId });
+
+    const userInteractions = await db
+      .collection("interactions")
+      .find({ userId: user._id })
+      .toArray();
+
+    // update user tags each 10 interactions
+    if (userInteractions.length % 10 === 0) {
+      // if (true) {
+      // get all tags from all interactions, from the cards in the interactions
+      const cards = await db
+        .collection("cards")
+        .find({
+          _id: {
+            $in: userInteractions.map(
+              (interaction) => new mongoose.Types.ObjectId(interaction.cardId)
+            ),
+          },
+        })
+        .toArray();
+
+      // get all tags from all cards in one array
+      let tags = cards.flatMap((card) => card?.display_data?.tags);
+      // there is also tags in card.tags, so we need to also add them to the tags array
+      tags = tags.concat(cards.flatMap((card) => card?.tags));
+      // remove duplicates
+      tags = [...new Set(tags)];
+      // remove tags that are not objects
+      tags = tags.filter((tag) => typeof tag === "object");
+      // TODO: Update user tags with algorithm
+    }
 
     return {
       statusCode: 201,
