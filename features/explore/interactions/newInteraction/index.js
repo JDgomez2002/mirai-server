@@ -49,7 +49,15 @@ export const handler = async (event, _) => {
     }
 
     // Validate action is one of the allowed values
-    const allowedActions = ["view", "tap", "save", "share"];
+    const allowedActions = [
+      "view",
+      "tap",
+      "save",
+      "share",
+      "like",
+      "unlike",
+      "unsave",
+    ];
     if (!allowedActions.includes(action)) {
       return {
         statusCode: 400,
