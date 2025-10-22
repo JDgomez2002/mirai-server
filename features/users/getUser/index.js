@@ -47,6 +47,7 @@ export const handler = async (event, _) => {
           role: encrypt(user.role),
           tags: user.user_tags,
           quizCompletedAt: user.quizCompletedAt ?? null,
+          likes: user.likes ?? [],
         },
       }),
     };
