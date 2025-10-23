@@ -281,6 +281,13 @@
         margin-top: 3rem;
       }
 
+      .api-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 2rem;
+        margin-top: 3rem;
+      }
+
       .card {
         background: var(--bg-card);
         border: 1px solid var(--border-color);
@@ -423,6 +430,10 @@
       }
       .method-put {
         background: var(--warning-color);
+        color: white;
+      }
+      .method-patch {
+        background: #f59e0b;
         color: white;
       }
       .method-delete {
@@ -579,6 +590,10 @@
         }
 
         .cards-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .api-grid {
           grid-template-columns: 1fr;
         }
 
@@ -1287,98 +1302,26 @@
       <div class="container">
         <h2 class="section-title">API Endpoints</h2>
         <p class="section-subtitle">
-          RESTful API endpoints for all platform functionality
+          HTTPs API Gateway endpoints for all platform functionality
         </p>
 
-        <div class="cards-grid">
+        <div class="api-grid">
           <div class="card fade-in-up">
             <h3><i class="fas fa-user-lock"></i> Authentication</h3>
             <div class="endpoint">
               <span class="endpoint-method method-post">POST</span>
               <span class="endpoint-path">/auth/register</span>
-              <div class="endpoint-description">
-                Register a new user account
-              </div>
+              <div class="endpoint-description">Register new user</div>
             </div>
             <div class="endpoint">
-              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/auth/update</span>
+              <div class="endpoint-description">Update user info</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
               <span class="endpoint-path">/auth/delete</span>
-              <div class="endpoint-description">Delete user account</div>
-            </div>
-          </div>
-
-          <div class="card fade-in-up">
-            <h3><i class="fas fa-compass"></i> Content & Exploration</h3>
-            <div class="endpoint">
-              <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/explore/feed</span>
-              <div class="endpoint-description">
-                Get paginated content feed with filtering
-              </div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-post">POST</span>
-              <span class="endpoint-path">/explore/cards/newCard</span>
-              <div class="endpoint-description">Create new content card</div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/explore/cards/getCard</span>
-              <div class="endpoint-description">Retrieve card by ID</div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-post">POST</span>
-              <span class="endpoint-path"
-                >/explore/interactions/newInteraction</span
-              >
-              <div class="endpoint-description">Record user interaction</div>
-            </div>
-          </div>
-
-          <div class="card fade-in-up">
-            <h3><i class="fas fa-comments"></i> Forums</h3>
-            <div class="endpoint">
-              <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/forums/getForums</span>
-              <div class="endpoint-description">Get all forum posts</div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/forums/getForum/{id}</span>
-              <div class="endpoint-description">Get specific forum post</div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-post">POST</span>
-              <span class="endpoint-path">/forums/newForum</span>
-              <div class="endpoint-description">Create new forum post</div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-post">POST</span>
-              <span class="endpoint-path">/forums/comments/newComment</span>
-              <div class="endpoint-description">Add comment to forum</div>
-            </div>
-          </div>
-
-          <div class="card fade-in-up">
-            <h3><i class="fas fa-briefcase"></i> Careers</h3>
-            <div class="endpoint">
-              <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/careers/getCareers</span>
-              <div class="endpoint-description">
-                Get all careers with filtering
-              </div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/careers/getCareer/{id}</span>
-              <div class="endpoint-description">
-                Get detailed career information
-              </div>
-            </div>
-            <div class="endpoint">
-              <span class="endpoint-method method-put">PUT</span>
-              <span class="endpoint-path">/careers/editCareerInsights</span>
-              <div class="endpoint-description">Update career insights</div>
+              <div class="endpoint-description">Delete account</div>
             </div>
           </div>
 
@@ -1386,25 +1329,37 @@
             <h3><i class="fas fa-users"></i> User Management</h3>
             <div class="endpoint">
               <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/users/getUsers</span>
-              <div class="endpoint-description">Get all users (admin only)</div>
+              <span class="endpoint-path">/users</span>
+              <div class="endpoint-description">Get all users</div>
             </div>
             <div class="endpoint">
               <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/users/getUser/{id}</span>
+              <span class="endpoint-path">/users/me</span>
               <div class="endpoint-description">Get user profile</div>
             </div>
             <div class="endpoint">
-              <span class="endpoint-method method-put">PUT</span>
-              <span class="endpoint-path">/users/editUser/{id}</span>
-              <div class="endpoint-description">Update user profile</div>
+              <span class="endpoint-method method-patch">PATCH</span>
+              <span class="endpoint-path">/users/{id}</span>
+              <div class="endpoint-description">Edit user role</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-bookmark"></i> Saved Items</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/users/saved</span>
+              <div class="endpoint-description">Get saved items</div>
             </div>
             <div class="endpoint">
               <span class="endpoint-method method-post">POST</span>
-              <span class="endpoint-path">/users/saved/saveItem</span>
-              <div class="endpoint-description">
-                Save item to user collection
-              </div>
+              <span class="endpoint-path">/users/saved</span>
+              <div class="endpoint-description">Save item</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path">/users/saved/{id}</span>
+              <div class="endpoint-description">Unsave item</div>
             </div>
           </div>
 
@@ -1412,13 +1367,248 @@
             <h3><i class="fas fa-chart-line"></i> Analytics</h3>
             <div class="endpoint">
               <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/analytics/getAnalytics</span>
-              <div class="endpoint-description">Get platform analytics</div>
+              <span class="endpoint-path">/analytics</span>
+              <div class="endpoint-description">Get student analytics</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-briefcase"></i> Careers</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/careers</span>
+              <div class="endpoint-description">Get all careers</div>
             </div>
             <div class="endpoint">
               <span class="endpoint-method method-get">GET</span>
-              <span class="endpoint-path">/quiz/results/getResults</span>
+              <span class="endpoint-path">/careers/{id}</span>
+              <div class="endpoint-description">Get career details</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-patch">PATCH</span>
+              <span class="endpoint-path">/careers/{id}</span>
+              <div class="endpoint-description">Edit career insights</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-id-card"></i> Cards</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/explore/cards</span>
+              <div class="endpoint-description">Create card</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/explore/cards/{id}</span>
+              <div class="endpoint-description">Get card</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-put">PUT</span>
+              <span class="endpoint-path">/explore/cards/{id}</span>
+              <div class="endpoint-description">Edit card</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path">/explore/cards/{id}</span>
+              <div class="endpoint-description">Delete card</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-compass"></i> Feed & Testimonies</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/explore/feed</span>
+              <div class="endpoint-description">Get content feed</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/testimonies</span>
+              <div class="endpoint-description">Get testimonies</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-hand-pointer"></i> Interactions & Likes</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/explore/interactions</span>
+              <div class="endpoint-description">New card interaction</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-patch">PATCH</span>
+              <span class="endpoint-path">/explore/cards/{id}/likes</span>
+              <div class="endpoint-description">Like card</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-patch">PATCH</span>
+              <span class="endpoint-path">/explore/cards/{id}/likes</span>
+              <div class="endpoint-description">Unlike card</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-comments"></i> Forums</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/forums</span>
+              <div class="endpoint-description">Create forum</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/forums</span>
+              <div class="endpoint-description">Get all forums</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/forums/{id}</span>
+              <div class="endpoint-description">Get forum</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-put">PUT</span>
+              <span class="endpoint-path">/forums/{id}</span>
+              <div class="endpoint-description">Edit forum</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path">/forums/{id}</span>
+              <div class="endpoint-description">Delete forum</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-comment"></i> Comments</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/forums/{id}/comments</span>
+              <div class="endpoint-description">New comment</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-put">PUT</span>
+              <span class="endpoint-path"
+                >/forums/{id}/comments/{commentId}</span
+              >
+              <div class="endpoint-description">Edit comment</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path"
+                >/forums/{id}/comments/{commentId}</span
+              >
+              <div class="endpoint-description">Delete comment</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-reply"></i> Answers</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path"
+                >/forums/{id}/comments/{commentId}/answers</span
+              >
+              <div class="endpoint-description">New answer</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-put">PUT</span>
+              <span class="endpoint-path"
+                >/forums/{id}/comments/{commentId}/answers/{answerId}</span
+              >
+              <div class="endpoint-description">Edit answer</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path"
+                >/forums/{id}/comments/{commentId}/answers/{answerId}</span
+              >
+              <div class="endpoint-description">Delete answer</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-clipboard-check"></i> Quiz</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/quiz/results</span>
               <div class="endpoint-description">Get quiz results</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path">/quiz/results</span>
+              <div class="endpoint-description">Delete results</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-lightbulb"></i> Recommendations - Quiz</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path"
+                >/recommendations/initial-test/items</span
+              >
+              <div class="endpoint-description">Get initial quiz items</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path"
+                >/recommendations/initial-test/calculate</span
+              >
+              <div class="endpoint-description">Calculate results</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-message"></i> Recommendations - Chat</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/recommendations/guide/ask</span>
+              <div class="endpoint-description">Question empty</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/recommendations/guide/ask</span>
+              <div class="endpoint-description">Question with history</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-magic"></i> Recommendations - Cards</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/recommendations/generate/card</span>
+              <div class="endpoint-description">Generate survey card</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/recommendations/generate/card</span>
+              <div class="endpoint-description">Generate what if card</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3>
+              <i class="fas fa-question-circle"></i> Recommendations - Questions
+            </h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path"
+                >/recommendations/career/similar/{id}</span
+              >
+              <div class="endpoint-description">Similar career</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path"
+                >/recommendations/generate/mini-inform</span
+              >
+              <div class="endpoint-description">Mini inform</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path"
+                >/recommendations/generate/career-combination/{id}</span
+              >
+              <div class="endpoint-description">Career combination</div>
             </div>
           </div>
         </div>
