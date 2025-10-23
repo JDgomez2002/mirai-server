@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <title>Mirai Server - Vocational Orientation Platform</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
@@ -71,12 +74,13 @@
 
       /* Header */
       .header {
-        background: rgba(15, 23, 42, 0.8);
+        background: rgba(15, 23, 42, 0.95);
         border-bottom: 1px solid var(--border-color);
         position: sticky;
         top: 0;
         z-index: 100;
         backdrop-filter: blur(10px);
+        padding-top: env(safe-area-inset-top);
       }
 
       .nav {
@@ -84,6 +88,13 @@
         justify-content: space-between;
         align-items: center;
         padding: 1rem 0;
+      }
+
+      @media (max-width: 768px) {
+        .nav {
+          padding: 2rem 0;
+          height: 3rem;
+        }
       }
 
       .logo {
