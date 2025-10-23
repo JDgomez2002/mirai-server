@@ -28,9 +28,10 @@
         --bg-card: #1e293b;
         --bg-hover: #334155;
 
-        --text-primary: #f8fafc;
-        --text-secondary: #cbd5e1;
-        --text-muted: #94a3b8;
+        --text-primary: #ffffff;
+        --text-secondary: #ffffff;
+        --text-muted: #e2e8f0;
+        --text-title: #c4b5fd;
 
         --border-color: #334155;
         --border-hover: #475569;
@@ -86,8 +87,20 @@
       }
 
       .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
         font-size: 1.5rem;
         font-weight: 700;
+      }
+
+      .logo-image {
+        height: 40px;
+        width: auto;
+        object-fit: contain;
+      }
+
+      .logo-text {
         background: var(--gradient-primary);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -147,6 +160,19 @@
       .hero-content {
         position: relative;
         z-index: 1;
+      }
+
+      .hero-logo {
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+      }
+
+      .hero-logo-image {
+        height: 120px;
+        width: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
       }
 
       .hero h1 {
@@ -531,6 +557,18 @@
           font-size: 2.5rem;
         }
 
+        .hero-logo-image {
+          height: 80px;
+        }
+
+        .logo-image {
+          height: 32px;
+        }
+
+        .logo-text {
+          font-size: 1.25rem;
+        }
+
         .nav-links {
           display: none;
         }
@@ -577,7 +615,14 @@
     <!-- Header -->
     <header class="header">
       <nav class="nav container">
-        <div class="logo">Mirai Server</div>
+        <div class="logo">
+          <img
+            src="https://res.cloudinary.com/dpteqanni/image/upload/v1761255661/mirai-logo_dp6izc.png"
+            alt="Mirai Server"
+            class="logo-image"
+          />
+          <span class="logo-text">Mirai Server</span>
+        </div>
         <ul class="nav-links">
           <li><a href="#overview">Overview</a></li>
           <li><a href="#features">Features</a></li>
@@ -592,6 +637,13 @@
     <section class="hero">
       <div class="container">
         <div class="hero-content fade-in-up">
+          <div class="hero-logo">
+            <img
+              src="https://res.cloudinary.com/dpteqanni/image/upload/v1761255661/mirai-logo_dp6izc.png"
+              alt="Mirai Server"
+              class="hero-logo-image"
+            />
+          </div>
           <h1>Mirai Server</h1>
           <p class="subtitle">
             Serverless Backend for Vocational Orientation Platform
@@ -711,6 +763,43 @@
 
           <div class="card fade-in-up">
             <div class="card-icon">
+              <i class="fas fa-lightbulb"></i>
+            </div>
+            <h3>Smart Recommendations</h3>
+            <p>
+              AI-powered career recommendations based on quiz results, user
+              preferences, and academic performance.
+            </p>
+            <ul class="card-list">
+              <li>Personalized career suggestions</li>
+              <li>Interest-based matching</li>
+              <li>Academic performance analysis</li>
+              <li>Dynamic recommendation updates</li>
+              <li>Career compatibility scoring</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <h3>Vocational Assessment Quiz</h3>
+            <p>
+              Comprehensive quiz system that evaluates student interests,
+              skills, and aptitudes to generate personalized career
+              recommendations.
+            </p>
+            <ul class="card-list">
+              <li>Multi-dimensional assessment questions</li>
+              <li>Interest and aptitude evaluation</li>
+              <li>Skill-based analysis</li>
+              <li>Results storage and tracking</li>
+              <li>Foundation for recommendations</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
               <i class="fas fa-compass"></i>
             </div>
             <h3>Content Exploration</h3>
@@ -726,6 +815,25 @@
               </li>
               <li>Priority-based sorting</li>
               <li>User interaction tracking</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-robot"></i>
+            </div>
+            <h3>AI Chat & Questions</h3>
+            <p>
+              Intelligent chat system that answers student questions about
+              careers, education, and vocational guidance with contextual
+              understanding.
+            </p>
+            <ul class="card-list">
+              <li>AI-powered question answering</li>
+              <li>Career guidance conversations</li>
+              <li>Chat history support</li>
+              <li>Context-aware responses</li>
+              <li>Educational resource recommendations</li>
             </ul>
           </div>
 
@@ -810,19 +918,74 @@
         <div class="cards-grid">
           <div class="card fade-in-up">
             <div class="card-icon">
-              <i class="fab fa-aws"></i>
+              <i class="fas fa-shield-alt"></i>
             </div>
-            <h3>AWS Lambda Functions</h3>
+            <h3>Security & Edge Services</h3>
             <p>
-              Individual Lambda functions for each feature, ensuring modularity
-              and independent scaling.
+              Multi-layered security with Web Application Firewall and global
+              content delivery for optimal performance and protection.
             </p>
             <ul class="card-list">
-              <li>Authentication functions</li>
-              <li>Content management functions</li>
-              <li>Forum management functions</li>
+              <li>AWS Web Application Firewall (WAF)</li>
+              <li>CloudFront CDN for global distribution</li>
+              <li>DDoS protection and filtering</li>
+              <li>Geographic distribution</li>
+              <li>Edge caching optimization</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-network-wired"></i>
+            </div>
+            <h3>API Gateway & Authorization</h3>
+            <p>
+              HTTP API Gateway with dual authorization layers for secure access
+              control and request routing.
+            </p>
+            <ul class="card-list">
+              <li>HTTP API Gateway (AWS)</li>
+              <li>JWT Lambda Authorizer</li>
+              <li>Webhook Authorizer (Signed)</li>
+              <li>Clerk authentication integration</li>
+              <li>Request routing and throttling</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fab fa-aws"></i>
+            </div>
+            <h3>Serverless Functions</h3>
+            <p>
+              Serverless architecture with individual Lambda functions for each
+              feature, ensuring modularity and independent scaling.
+            </p>
+            <ul class="card-list">
               <li>User management functions</li>
-              <li>Analytics functions</li>
+              <li>Career and exploration functions</li>
+              <li>Forum and interaction functions</li>
+              <li>Authentication functions</li>
+              <li>Analytics and quiz functions</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-server"></i>
+            </div>
+            <h3>Recommendations Microservice</h3>
+            <p>
+              Dedicated EC2-based microservice for AI-powered recommendations,
+              running in a private subnet with VPC connectivity.
+            </p>
+            <ul class="card-list">
+              <li>EC2 instance deployment</li>
+              <li>AI recommendation engine</li>
+              <li>IPv4 private address connectivity</li>
+              <li>VPC Link connectivity</li>
+              <li>Private subnet isolation</li>
+              <li>Scalable compute resources</li>
             </ul>
           </div>
 
@@ -830,35 +993,39 @@
             <div class="card-icon">
               <i class="fas fa-database"></i>
             </div>
-            <h3>MongoDB Database</h3>
+            <h3>DocumentDB Database</h3>
             <p>
-              NoSQL database with Mongoose ODM for flexible data modeling and
-              efficient queries.
+              DocumentDB database running on EC2 in a private subnet with
+              MongoDB 5.0 compatibility for flexible data modeling.
             </p>
             <ul class="card-list">
-              <li>User profiles and authentication</li>
-              <li>Content and card management</li>
-              <li>Forum posts and comments</li>
-              <li>Career information and insights</li>
-              <li>Analytics and interaction data</li>
+              <li>DocumentDB on EC2 instance</li>
+              <li>MongoDB 5.0 compatibility</li>
+              <li>Private subnet deployment</li>
+              <li>High availability setup</li>
+              <li>Secure data storage</li>
+              <li>IPv4 private address connectivity</li>
+              <li>Rest data encryption with AES-256</li>
             </ul>
           </div>
 
           <div class="card fade-in-up">
             <div class="card-icon">
-              <i class="fas fa-shield-alt"></i>
+              <i class="fas fa-cloud"></i>
             </div>
-            <h3>Security Middleware</h3>
+            <h3>VPC & Network Security</h3>
             <p>
-              Comprehensive security implementation with multiple encryption
-              layers.
+              Virtual Private Cloud with private subnets and security groups
+              providing network isolation and secure communication.
             </p>
             <ul class="card-list">
-              <li>JWT token validation</li>
-              <li>AES-256 data encryption</li>
-              <li>Traffic encryption (AES-256-GCM)</li>
-              <li>API Gateway integration</li>
-              <li>Role-based access control</li>
+              <li>VPC in Ohio us-east-2 region</li>
+              <li>Private subnets for isolation</li>
+              <li>Security groups configuration</li>
+              <li>Lambda-DocumentDB connectivity</li>
+              <li>Microservice communication</li>
+              <li>NAT Gateway for outbound internet access</li>
+              <li>Route tables for private subnet connectivity</li>
             </ul>
           </div>
         </div>
@@ -886,12 +1053,21 @@
 
           <div class="tech-item fade-in-up">
             <div class="tech-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3 class="tech-name">HonoJS</h3>
+            <p class="tech-description">
+              Fast, lightweight web framework for Lambda functions &
+              microservices
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
               <i class="fas fa-database"></i>
             </div>
-            <h3 class="tech-name">MongoDB</h3>
-            <p class="tech-description">
-              NoSQL database for flexible data storage
-            </p>
+            <h3 class="tech-name">DocumentDB</h3>
+            <p class="tech-description">MongoDB-compatible database on EC2</p>
           </div>
 
           <div class="tech-item fade-in-up">
@@ -906,8 +1082,58 @@
             <div class="tech-icon">
               <i class="fab fa-aws"></i>
             </div>
-            <h3 class="tech-name">AWS Lambda</h3>
-            <p class="tech-description">Serverless compute service</p>
+            <h3 class="tech-name">Lambda</h3>
+            <p class="tech-description">
+              AWS Lambda for serverless compute service
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="tech-name">WAF</h3>
+            <p class="tech-description">
+              AWS Web Application Firewall for security
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-globe"></i>
+            </div>
+            <h3 class="tech-name">CloudFront</h3>
+            <p class="tech-description">AWS Global CDN for content delivery</p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-network-wired"></i>
+            </div>
+            <h3 class="tech-name">API Gateway</h3>
+            <p class="tech-description">
+              AWS HTTP API Gateway for API management and routing service
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-cloud"></i>
+            </div>
+            <h3 class="tech-name">VPC</h3>
+            <p class="tech-description">
+              AWS Virtual Private Cloud for network isolation
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-server"></i>
+            </div>
+            <h3 class="tech-name">EC2</h3>
+            <p class="tech-description">
+              AWS Elastic Compute Cloud for microservices
+            </p>
           </div>
 
           <div class="tech-item fade-in-up">
@@ -920,31 +1146,33 @@
             </p>
           </div>
 
-          <div class="tech-item fade-in-up">
+          <!-- <div class="tech-item fade-in-up">
             <div class="tech-icon">
               <i class="fas fa-lock"></i>
             </div>
-            <h3 class="tech-name">AES-256 Encryption</h3>
+            <h3 class="tech-name">Crypto.js</h3>
             <p class="tech-description">
-              Advanced encryption for data security
+              Cryptographic library for data encryption
             </p>
-          </div>
+          </div> -->
 
           <div class="tech-item fade-in-up">
             <div class="tech-icon">
               <i class="fas fa-shield-alt"></i>
             </div>
-            <h3 class="tech-name">Clerk Integration</h3>
-            <p class="tech-description">User authentication and management</p>
+            <h3 class="tech-name">Clerk</h3>
+            <p class="tech-description">
+              Clerk integration for user authentication & management
+            </p>
           </div>
 
-          <div class="tech-item fade-in-up">
+          <!-- <div class="tech-item fade-in-up">
             <div class="tech-icon">
               <i class="fas fa-code"></i>
             </div>
             <h3 class="tech-name">ES6+ Modules</h3>
             <p class="tech-description">Modern JavaScript module system</p>
-          </div>
+          </div> -->
         </div>
       </div>
     </section>
@@ -961,23 +1189,71 @@
         <div class="security-grid">
           <div class="security-item fade-in-up">
             <div class="security-icon">
-              <i class="fas fa-lock"></i>
+              <i class="fas fa-shield-virus"></i>
             </div>
-            <h3>Data at Rest Encryption</h3>
+            <h3>Web Application Firewall (WAF)</h3>
             <p>
-              AES-256-CBC encryption for all personal identifiable information
-              (PII) stored in the database.
+              Advanced AWS WAF protection against multiple attack vectors and
+              malicious traffic patterns.
             </p>
+            <ul class="card-list">
+              <li>DDoS attack protection and mitigation</li>
+              <li>SQL injection prevention</li>
+              <li>Cross-site scripting (XSS) protection</li>
+              <li>Rate limiting and throttling</li>
+              <li>Geographic restrictions and filtering</li>
+              <li>Bot traffic detection and blocking</li>
+              <li>Custom security rules and policies</li>
+            </ul>
           </div>
 
           <div class="security-item fade-in-up">
             <div class="security-icon">
-              <i class="fas fa-shield-alt"></i>
+              <i class="fas fa-globe-americas"></i>
             </div>
-            <h3>Traffic Encryption</h3>
+            <h3>CloudFront Security</h3>
             <p>
-              AES-256-GCM encryption for data in transit, providing TLS 1.3
-              level security.
+              Global CDN with built-in security features for content protection
+              and secure delivery.
+            </p>
+            <ul class="card-list">
+              <li>HTTPS enforcement and SSL/TLS termination</li>
+              <li>Origin access control (OAC)</li>
+              <li>Signed URLs and cookies</li>
+              <li>Geographic restrictions</li>
+              <li>Edge caching security</li>
+              <li>DDoS protection at edge locations</li>
+            </ul>
+          </div>
+
+          <div class="security-item fade-in-up">
+            <div class="security-icon">
+              <i class="fas fa-cloud"></i>
+            </div>
+            <h3>VPC Private Cloud Security</h3>
+            <p>
+              Comprehensive network isolation and security within AWS Virtual
+              Private Cloud for maximum data protection.
+            </p>
+            <ul class="card-list">
+              <li>Private subnet isolation for all services</li>
+              <li>Security groups with least privilege access</li>
+              <li>NAT Gateway for secure outbound internet access</li>
+              <li>Route tables for controlled network traffic</li>
+              <li>VPC Link for secure microservice communication</li>
+              <li>Network ACLs for additional layer protection</li>
+              <li>IPv4 private addressing for internal services</li>
+            </ul>
+          </div>
+
+          <div class="security-item fade-in-up">
+            <div class="security-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <h3>Data Encryption</h3>
+            <p>
+              Traffic (HTTPS) and rest (AES-256) encryption for data protection.
+              And additional encryption for Personal Identifiable Information.
             </p>
           </div>
 
