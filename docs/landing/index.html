@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mirai Server - Vocational Orientation Platform</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary-color: #8b5cf6;
+        --accent-color: #06b6d4;
+        --success-color: #10b981;
+        --warning-color: #f59e0b;
+        --error-color: #ef4444;
+
+        --bg-primary: #0f0f23;
+        --bg-secondary: #1a1a2e;
+        --bg-tertiary: #16213e;
+        --bg-card: #1e293b;
+        --bg-hover: #334155;
+
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+
+        --border-color: #334155;
+        --border-hover: #475569;
+
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+        --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --gradient-secondary: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+        --gradient-accent: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+      }
+
+      /* Header */
+      .header {
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        backdrop-filter: blur(10px);
+      }
+
+      .nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+        font-weight: 700;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .nav-links {
+        display: flex;
+        list-style: none;
+        gap: 2rem;
+      }
+
+      .nav-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+
+      .nav-links a:hover {
+        color: var(--primary-color);
+      }
+
+      /* Hero Section */
+      .hero {
+        padding: 6rem 0;
+        text-align: center;
+        background: linear-gradient(
+          135deg,
+          var(--bg-primary) 0%,
+          var(--bg-secondary) 100%
+        );
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(
+            circle at 20% 80%,
+            rgba(99, 102, 241, 0.1) 0%,
+            transparent 50%
+          ),
+          radial-gradient(
+            circle at 80% 20%,
+            rgba(139, 92, 246, 0.1) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+
+      .hero-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+      }
+
+      .hero .subtitle {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero .description {
+        font-size: 1.1rem;
+        color: var(--text-muted);
+        margin-bottom: 3rem;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .cta-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 1.5rem;
+        border: none;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .btn-primary {
+        background: var(--gradient-primary);
+        color: white;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-xl);
+      }
+
+      .btn-secondary {
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+      }
+
+      .btn-secondary:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-hover);
+      }
+
+      /* Section Styles */
+      .section {
+        padding: 5rem 0;
+      }
+
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 1rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .section-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        text-align: center;
+        margin-bottom: 3rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      /* Cards */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+      }
+
+      .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--border-hover);
+      }
+
+      .card:hover::before {
+        transform: scaleX(1);
+      }
+
+      .card-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .card h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+      }
+
+      .card p {
+        color: var(--text-secondary);
+        margin-bottom: 1.5rem;
+      }
+
+      .card-list {
+        list-style: none;
+        margin-top: 1rem;
+      }
+
+      .card-list li {
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        padding-left: 1.5rem;
+        position: relative;
+      }
+
+      .card-list li::before {
+        content: "→";
+        position: absolute;
+        left: 0;
+        color: var(--primary-color);
+        font-weight: bold;
+      }
+
+      /* Technology Stack */
+      .tech-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 3rem;
+      }
+
+      .tech-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .tech-item:hover {
+        transform: translateY(-2px);
+        border-color: var(--primary-color);
+      }
+
+      .tech-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: var(--primary-color);
+      }
+
+      .tech-name {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+      }
+
+      .tech-description {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+
+      /* API Endpoints */
+      .endpoint {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+        font-size: 0.9rem;
+      }
+
+      .endpoint-method {
+        display: inline-block;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-weight: 600;
+        margin-right: 1rem;
+        font-size: 0.8rem;
+      }
+
+      .method-get {
+        background: var(--success-color);
+        color: white;
+      }
+      .method-post {
+        background: var(--primary-color);
+        color: white;
+      }
+      .method-put {
+        background: var(--warning-color);
+        color: white;
+      }
+      .method-delete {
+        background: var(--error-color);
+        color: white;
+      }
+
+      .endpoint-path {
+        color: var(--text-primary);
+      }
+
+      .endpoint-description {
+        color: var(--text-muted);
+        margin-top: 0.5rem;
+      }
+
+      /* Security Features */
+      .security-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+      }
+
+      .security-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 1rem;
+        padding: 2rem;
+        text-align: center;
+        transition: all 0.3s ease;
+      }
+
+      .security-item:hover {
+        transform: translateY(-2px);
+        border-color: var(--success-color);
+      }
+
+      .security-icon {
+        font-size: 2.5rem;
+        color: var(--success-color);
+        margin-bottom: 1rem;
+      }
+
+      /* Footer */
+      .footer {
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border-color);
+        padding: 3rem 0 2rem;
+        text-align: center;
+      }
+
+      .footer-content {
+        margin-bottom: 2rem;
+      }
+
+      .footer h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .footer p {
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+      }
+
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .footer-links a {
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: color 0.3s ease;
+      }
+
+      .footer-links a:hover {
+        color: var(--primary-color);
+      }
+
+      .footer-bottom {
+        border-top: 1px solid var(--border-color);
+        padding-top: 2rem;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      /* Animations */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .fade-in-up {
+        animation: fadeInUp 0.6s ease-out;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .container {
+          padding: 0 1rem;
+        }
+
+        .hero h1 {
+          font-size: 2.5rem;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .cta-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .cards-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .tech-grid {
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        }
+
+        .footer-links {
+          flex-direction: column;
+          gap: 1rem;
+        }
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-dark);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <nav class="nav container">
+        <div class="logo">Mirai Server</div>
+        <ul class="nav-links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#features">Features</a></li>
+          <li><a href="#architecture">Architecture</a></li>
+          <li><a href="#api">API</a></li>
+          <li><a href="#tech">Tech Stack</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content fade-in-up">
+          <h1>Mirai Server</h1>
+          <p class="subtitle">
+            Serverless Backend for Vocational Orientation Platform
+          </p>
+          <p class="description">
+            A comprehensive AWS Lambda-based API designed to support vocational
+            guidance and career exploration for students in Guatemala and Latin
+            America. Built as a graduation project at Universidad del Valle de
+            Guatemala.
+          </p>
+          <div class="cta-buttons">
+            <a href="#api" class="btn btn-primary">
+              <i class="fas fa-code"></i>
+              Explore API
+            </a>
+            <a href="#architecture" class="btn btn-secondary">
+              <i class="fas fa-sitemap"></i>
+              View Architecture
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Overview Section -->
+    <section id="overview" class="section">
+      <div class="container">
+        <h2 class="section-title">Project Overview</h2>
+        <p class="section-subtitle">
+          A graduation work project aimed at contributing to vocational
+          orientation in Guatemala and Latin America
+        </p>
+
+        <div class="cards-grid">
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h3>Educational Mission</h3>
+            <p>
+              Designed to help students discover their career paths through
+              data-driven insights and interactive content.
+            </p>
+            <ul class="card-list">
+              <li>Career exploration tools</li>
+              <li>Interactive forums and discussions</li>
+              <li>Personalized recommendations</li>
+              <li>Alumni success stories</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-cloud"></i>
+            </div>
+            <h3>Serverless Architecture</h3>
+            <p>
+              Built on AWS Lambda with individual functions for each feature,
+              ensuring scalability and cost-effectiveness.
+            </p>
+            <ul class="card-list">
+              <li>Independent Lambda functions</li>
+              <li>Auto-scaling capabilities</li>
+              <li>Pay-per-use pricing</li>
+              <li>High availability</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Security First</h3>
+            <p>
+              Implements multiple layers of security including data encryption,
+              JWT authentication, and traffic encryption.
+            </p>
+            <ul class="card-list">
+              <li>AES-256 encryption for data at rest</li>
+              <li>TLS 1.3 style traffic encryption</li>
+              <li>JWT-based authentication</li>
+              <li>Role-based access control</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="section">
+      <div class="container">
+        <h2 class="section-title">Core Features</h2>
+        <p class="section-subtitle">
+          Comprehensive functionality for vocational guidance and career
+          exploration
+        </p>
+
+        <div class="cards-grid">
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-user-lock"></i>
+            </div>
+            <h3>Authentication System</h3>
+            <p>
+              Secure user management with Clerk integration and role-based
+              access control.
+            </p>
+            <ul class="card-list">
+              <li>User registration and deletion</li>
+              <li>JWT token validation</li>
+              <li>
+                Role-based permissions (admin, teacher, director, student)
+              </li>
+              <li>Secure password handling</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-compass"></i>
+            </div>
+            <h3>Content Exploration</h3>
+            <p>
+              Dynamic content feed with multiple content types and intelligent
+              filtering.
+            </p>
+            <ul class="card-list">
+              <li>Paginated content feed</li>
+              <li>
+                Multiple content types (career, alumni_story, what_if,
+                short_question)
+              </li>
+              <li>Priority-based sorting</li>
+              <li>User interaction tracking</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-comments"></i>
+            </div>
+            <h3>Discussion Forums</h3>
+            <p>
+              Interactive forums for career-related discussions with threaded
+              comments.
+            </p>
+            <ul class="card-list">
+              <li>Forum creation and management</li>
+              <li>Threaded comments and answers</li>
+              <li>Career-specific discussions</li>
+              <li>User participation tracking</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-briefcase"></i>
+            </div>
+            <h3>Career Management</h3>
+            <p>
+              Comprehensive career database with detailed information and
+              insights.
+            </p>
+            <ul class="card-list">
+              <li>Career information retrieval</li>
+              <li>Detailed career profiles</li>
+              <li>Career insights and analytics</li>
+              <li>Salary and employment data</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h3>User Management</h3>
+            <p>
+              Complete user profile management with saved items and preferences.
+            </p>
+            <ul class="card-list">
+              <li>User profile management</li>
+              <li>Saved items functionality</li>
+              <li>User preferences and tags</li>
+              <li>Admin user management</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Analytics & Insights</h3>
+            <p>
+              Data-driven insights and analytics for better decision making.
+            </p>
+            <ul class="card-list">
+              <li>User interaction analytics</li>
+              <li>Content performance metrics</li>
+              <li>Career recommendation insights</li>
+              <li>Platform usage statistics</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="section">
+      <div class="container">
+        <h2 class="section-title">Architecture & Infrastructure</h2>
+        <p class="section-subtitle">
+          Modern serverless architecture designed for scalability and
+          reliability
+        </p>
+
+        <div class="cards-grid">
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fab fa-aws"></i>
+            </div>
+            <h3>AWS Lambda Functions</h3>
+            <p>
+              Individual Lambda functions for each feature, ensuring modularity
+              and independent scaling.
+            </p>
+            <ul class="card-list">
+              <li>Authentication functions</li>
+              <li>Content management functions</li>
+              <li>Forum management functions</li>
+              <li>User management functions</li>
+              <li>Analytics functions</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3>MongoDB Database</h3>
+            <p>
+              NoSQL database with Mongoose ODM for flexible data modeling and
+              efficient queries.
+            </p>
+            <ul class="card-list">
+              <li>User profiles and authentication</li>
+              <li>Content and card management</li>
+              <li>Forum posts and comments</li>
+              <li>Career information and insights</li>
+              <li>Analytics and interaction data</li>
+            </ul>
+          </div>
+
+          <div class="card fade-in-up">
+            <div class="card-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Security Middleware</h3>
+            <p>
+              Comprehensive security implementation with multiple encryption
+              layers.
+            </p>
+            <ul class="card-list">
+              <li>JWT token validation</li>
+              <li>AES-256 data encryption</li>
+              <li>Traffic encryption (AES-256-GCM)</li>
+              <li>API Gateway integration</li>
+              <li>Role-based access control</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technology Stack Section -->
+    <section id="tech" class="section">
+      <div class="container">
+        <h2 class="section-title">Technology Stack</h2>
+        <p class="section-subtitle">
+          Modern technologies and frameworks for robust backend development
+        </p>
+
+        <div class="tech-grid">
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fab fa-node-js"></i>
+            </div>
+            <h3 class="tech-name">Node.js</h3>
+            <p class="tech-description">
+              JavaScript runtime for serverless functions
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3 class="tech-name">MongoDB</h3>
+            <p class="tech-description">
+              NoSQL database for flexible data storage
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-cube"></i>
+            </div>
+            <h3 class="tech-name">Mongoose ODM</h3>
+            <p class="tech-description">Object Document Mapper for MongoDB</p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fab fa-aws"></i>
+            </div>
+            <h3 class="tech-name">AWS Lambda</h3>
+            <p class="tech-description">Serverless compute service</p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-key"></i>
+            </div>
+            <h3 class="tech-name">JWT Authentication</h3>
+            <p class="tech-description">
+              JSON Web Tokens for secure authentication
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <h3 class="tech-name">AES-256 Encryption</h3>
+            <p class="tech-description">
+              Advanced encryption for data security
+            </p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3 class="tech-name">Clerk Integration</h3>
+            <p class="tech-description">User authentication and management</p>
+          </div>
+
+          <div class="tech-item fade-in-up">
+            <div class="tech-icon">
+              <i class="fas fa-code"></i>
+            </div>
+            <h3 class="tech-name">ES6+ Modules</h3>
+            <p class="tech-description">Modern JavaScript module system</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security Features Section -->
+    <section class="section">
+      <div class="container">
+        <h2 class="section-title">Security Features</h2>
+        <p class="section-subtitle">
+          Multi-layered security implementation for data protection and user
+          privacy
+        </p>
+
+        <div class="security-grid">
+          <div class="security-item fade-in-up">
+            <div class="security-icon">
+              <i class="fas fa-lock"></i>
+            </div>
+            <h3>Data at Rest Encryption</h3>
+            <p>
+              AES-256-CBC encryption for all personal identifiable information
+              (PII) stored in the database.
+            </p>
+          </div>
+
+          <div class="security-item fade-in-up">
+            <div class="security-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <h3>Traffic Encryption</h3>
+            <p>
+              AES-256-GCM encryption for data in transit, providing TLS 1.3
+              level security.
+            </p>
+          </div>
+
+          <div class="security-item fade-in-up">
+            <div class="security-icon">
+              <i class="fas fa-key"></i>
+            </div>
+            <h3>JWT Authentication</h3>
+            <p>
+              Secure token-based authentication with public key verification and
+              role-based access control.
+            </p>
+          </div>
+
+          <div class="security-item fade-in-up">
+            <div class="security-icon">
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <h3>Role-Based Access</h3>
+            <p>
+              Granular permissions system with admin, teacher, director, and
+              student roles.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Endpoints Section -->
+    <section id="api" class="section">
+      <div class="container">
+        <h2 class="section-title">API Endpoints</h2>
+        <p class="section-subtitle">
+          RESTful API endpoints for all platform functionality
+        </p>
+
+        <div class="cards-grid">
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-user-lock"></i> Authentication</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/auth/register</span>
+              <div class="endpoint-description">
+                Register a new user account
+              </div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-delete">DELETE</span>
+              <span class="endpoint-path">/auth/delete</span>
+              <div class="endpoint-description">Delete user account</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-compass"></i> Content & Exploration</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/explore/feed</span>
+              <div class="endpoint-description">
+                Get paginated content feed with filtering
+              </div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/explore/cards/newCard</span>
+              <div class="endpoint-description">Create new content card</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/explore/cards/getCard</span>
+              <div class="endpoint-description">Retrieve card by ID</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path"
+                >/explore/interactions/newInteraction</span
+              >
+              <div class="endpoint-description">Record user interaction</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-comments"></i> Forums</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/forums/getForums</span>
+              <div class="endpoint-description">Get all forum posts</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/forums/getForum/{id}</span>
+              <div class="endpoint-description">Get specific forum post</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/forums/newForum</span>
+              <div class="endpoint-description">Create new forum post</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/forums/comments/newComment</span>
+              <div class="endpoint-description">Add comment to forum</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-briefcase"></i> Careers</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/careers/getCareers</span>
+              <div class="endpoint-description">
+                Get all careers with filtering
+              </div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/careers/getCareer/{id}</span>
+              <div class="endpoint-description">
+                Get detailed career information
+              </div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-put">PUT</span>
+              <span class="endpoint-path">/careers/editCareerInsights</span>
+              <div class="endpoint-description">Update career insights</div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-users"></i> User Management</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/users/getUsers</span>
+              <div class="endpoint-description">Get all users (admin only)</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/users/getUser/{id}</span>
+              <div class="endpoint-description">Get user profile</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-put">PUT</span>
+              <span class="endpoint-path">/users/editUser/{id}</span>
+              <div class="endpoint-description">Update user profile</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-post">POST</span>
+              <span class="endpoint-path">/users/saved/saveItem</span>
+              <div class="endpoint-description">
+                Save item to user collection
+              </div>
+            </div>
+          </div>
+
+          <div class="card fade-in-up">
+            <h3><i class="fas fa-chart-line"></i> Analytics</h3>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/analytics/getAnalytics</span>
+              <div class="endpoint-description">Get platform analytics</div>
+            </div>
+            <div class="endpoint">
+              <span class="endpoint-method method-get">GET</span>
+              <span class="endpoint-path">/quiz/results/getResults</span>
+              <div class="endpoint-description">Get quiz results</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <h3>Mirai Server</h3>
+          <p>Serverless Backend for Vocational Orientation Platform</p>
+          <p>Developed by Daniel Gómez - Universidad del Valle de Guatemala</p>
+
+          <div class="footer-links">
+            <a href="#overview">Overview</a>
+            <a href="#features">Features</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#api">API Documentation</a>
+            <a href="#tech">Technology Stack</a>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          <p>
+            &copy; 2025 Mirai Server. Graduation Work Project - Universidad del
+            Valle de Guatemala
+          </p>
+          <p>
+            Built with ❤️ for vocational guidance in Guatemala and Latin America
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      // Smooth scrolling for navigation links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+          const target = document.querySelector(this.getAttribute("href"));
+          if (target) {
+            target.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        });
+      });
+
+      // Add fade-in animation on scroll
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("fade-in-up");
+          }
+        });
+      }, observerOptions);
+
+      // Observe all cards and sections
+      document
+        .querySelectorAll(".card, .tech-item, .security-item")
+        .forEach((el) => {
+          observer.observe(el);
+        });
+
+      // Add pulse animation to CTA buttons
+      document.querySelectorAll(".btn-primary").forEach((btn) => {
+        btn.addEventListener("mouseenter", function () {
+          this.classList.add("pulse");
+        });
+        btn.addEventListener("mouseleave", function () {
+          this.classList.remove("pulse");
+        });
+      });
+    </script>
+  </body>
+</html>
