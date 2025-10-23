@@ -293,6 +293,166 @@
         box-shadow: 0 15px 50px rgba(139, 92, 246, 0.3);
       }
 
+      /* Why Mirai Section */
+      .why-mirai-section {
+        background: linear-gradient(
+          135deg,
+          rgba(139, 92, 246, 0.05) 0%,
+          rgba(59, 130, 246, 0.05) 100%
+        );
+        position: relative;
+        overflow: hidden;
+      }
+
+      .why-mirai-section::before {
+        content: "未来";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 20rem;
+        font-weight: 700;
+        color: rgba(139, 92, 246, 0.03);
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      .why-mirai-content {
+        position: relative;
+        z-index: 1;
+      }
+
+      .why-mirai-header {
+        text-align: center;
+        margin-bottom: 3rem;
+      }
+
+      .mirai-pronunciation {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        font-weight: 500;
+        margin-top: 0.5rem;
+        font-style: italic;
+      }
+
+      .mirai-explanation {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .mirai-main-text {
+        font-size: 1.3rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+        text-align: center;
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background: var(--bg-card);
+        border-radius: 12px;
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .mirai-vision-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+      }
+
+      .vision-card {
+        background: var(--bg-card);
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        text-align: center;
+      }
+
+      .vision-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.2);
+        border-color: var(--primary-color);
+      }
+
+      .vision-icon {
+        width: 70px;
+        height: 70px;
+        margin: 0 auto 1.5rem;
+        background: linear-gradient(
+          135deg,
+          var(--primary-color),
+          var(--secondary-color)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+      }
+
+      .vision-card h3 {
+        font-size: 1.3rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+      }
+
+      .vision-card p {
+        color: var(--text-secondary);
+        line-height: 1.6;
+      }
+
+      .mirai-quote {
+        background: linear-gradient(
+          135deg,
+          rgba(139, 92, 246, 0.1),
+          rgba(59, 130, 246, 0.1)
+        );
+        padding: 2.5rem;
+        border-radius: 12px;
+        margin-top: 3rem;
+        position: relative;
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .quote-icon {
+        font-size: 2rem;
+        color: var(--primary-color);
+        opacity: 0.3;
+        position: absolute;
+        top: 1rem;
+        left: 1.5rem;
+      }
+
+      .mirai-quote p {
+        font-size: 1.2rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+        font-style: italic;
+        margin: 0;
+        padding-left: 2rem;
+      }
+
+      @media (max-width: 768px) {
+        .why-mirai-section::before {
+          font-size: 10rem;
+        }
+
+        .mirai-main-text {
+          font-size: 1.1rem;
+          padding: 1.5rem;
+        }
+
+        .mirai-vision-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .mirai-quote p {
+          font-size: 1rem;
+          padding-left: 1rem;
+        }
+      }
+
       /* Cards */
       .cards-grid {
         display: grid;
@@ -764,6 +924,75 @@
               <li>JWT-based authentication</li>
               <li>Role-based access control</li>
             </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Why Mirai Section -->
+    <section class="section why-mirai-section">
+      <div class="container">
+        <div class="why-mirai-content fade-in-up">
+          <div class="why-mirai-header">
+            <h2 class="section-title">Why Mirai 未来?</h2>
+            <p class="mirai-pronunciation">[ mi-rai ] • Japanese: "Future"</p>
+          </div>
+
+          <div class="mirai-explanation">
+            <p class="mirai-main-text">
+              <strong>Mirai</strong> (未来) means "future" in Japanese. This
+              name embodies our core mission: to shape and empower the future of
+              vocational orientation education across Guatemala and Latin
+              America.
+            </p>
+
+            <div class="mirai-vision-grid">
+              <div class="vision-card">
+                <div class="vision-icon">
+                  <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h3>Building Tomorrow's Professionals</h3>
+                <p>
+                  We believe every student deserves access to intelligent,
+                  personalized guidance that helps them discover their true
+                  calling and potential career paths.
+                </p>
+              </div>
+
+              <div class="vision-card">
+                <div class="vision-icon">
+                  <i class="fas fa-lightbulb"></i>
+                </div>
+                <h3>Innovation in Education</h3>
+                <p>
+                  By combining AI-powered recommendations, comprehensive
+                  assessments, and modern technology, we're revolutionizing how
+                  students explore and choose their careers.
+                </p>
+              </div>
+
+              <div class="vision-card">
+                <div class="vision-icon">
+                  <i class="fas fa-globe-americas"></i>
+                </div>
+                <h3>Impact Across Latin America</h3>
+                <p>
+                  Starting in Guatemala, our vision extends to empowering
+                  students throughout Latin America with tools to make informed
+                  decisions about their future.
+                </p>
+              </div>
+            </div>
+
+            <div class="mirai-quote">
+              <i class="fas fa-quote-left quote-icon"></i>
+              <p>
+                "The future belongs to those who prepare for it today. Mirai is
+                our contribution to ensuring that every student has the
+                opportunity to build their own future with confidence,
+                knowledge, and the right guidance."
+              </p>
+            </div>
           </div>
         </div>
       </div>
