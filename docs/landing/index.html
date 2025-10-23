@@ -273,6 +273,26 @@
         margin-right: auto;
       }
 
+      .architecture-diagram {
+        margin: 3rem auto;
+        text-align: center;
+        max-width: 1200px;
+      }
+
+      .diagram-image {
+        width: 100%;
+        height: auto;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(139, 92, 246, 0.2);
+        border: 1px solid var(--border-color);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .diagram-image:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(139, 92, 246, 0.3);
+      }
+
       /* Cards */
       .cards-grid {
         display: grid;
@@ -929,6 +949,14 @@
           Modern serverless architecture designed for scalability and
           reliability
         </p>
+
+        <div class="architecture-diagram fade-in-up">
+          <img
+            src="https://res.cloudinary.com/dpteqanni/image/upload/v1761258376/Mirai_Infrastructure_czanp3.png"
+            alt="Mirai Server Infrastructure Diagram"
+            class="diagram-image"
+          />
+        </div>
 
         <div class="cards-grid">
           <div class="card fade-in-up">
