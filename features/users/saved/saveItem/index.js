@@ -95,6 +95,8 @@ export const handler = async (event, _) => {
         nombre_carrera: career.nombre_carrera,
         facultad: career.facultad,
         descripcion: career.descripcion,
+        duration: career.duracion,
+        employability: career.empleabilidad,
       };
     }
 
