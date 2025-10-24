@@ -92,6 +92,14 @@
         padding-top: env(safe-area-inset-top);
       }
 
+      @media (max-width: 768px) {
+        .header {
+          background: rgb(15, 15, 35);
+          /* Remove transparency and blur effect for mobile */
+          backdrop-filter: none;
+        }
+      }
+
       .nav {
         display: flex;
         justify-content: space-between;
