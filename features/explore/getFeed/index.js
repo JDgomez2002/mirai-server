@@ -313,7 +313,8 @@ const generateAICard = async (db) => {
   const randomInt = Math.floor(Math.random() * 2);
 
   if (randomInt === 0) {
-    return await generateEncuestaCard(db);
+    // return await generateEncuestaCard(db);
+    return await generateWhatIfCard(db);
   } else {
     return await generateWhatIfCard(db);
   }
