@@ -12,6 +12,22 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 // Initialize Gemini client
 let geminiClient = null;
 if (geminiApiKey) {
@@ -20,9 +36,9 @@ if (geminiApiKey) {
 
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
+    const db = (await connect()).db;
 
-    return await handleGetFeed(event);
+    return await handleGetFeed(event, db);
   } catch (error) {
     return {
       statusCode: 500,
@@ -30,13 +46,10 @@ export const handler = async (event, _) => {
         message: "Error: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
 
-const handleGetFeed = async (event) => {
+const handleGetFeed = async (event, db) => {
   try {
     // Get authenticated user ID from authorizer
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
@@ -54,7 +67,6 @@ const handleGetFeed = async (event) => {
     const offset = parseInt(queryParams.offset) || 0;
 
     // Find the user by clerk_id to get their MongoDB _id and user_tags
-    const db = mongoose.connection.db;
     const user = await db
       .collection("users")
       .findOne({ clerk_id: userId }, { projection: { _id: 1, user_tags: 1 } });
