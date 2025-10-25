@@ -9,11 +9,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-    const db = mongoose.connection.db;
-
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
 
     if (!userId) {
@@ -22,6 +35,8 @@ export const handler = async (event, _) => {
         body: JSON.stringify({ message: "Missing required fields: [userId]" }),
       };
     }
+
+    const db = (await connect()).db;
 
     const user = await db.collection("users").findOne({ clerk_id: userId });
 
@@ -151,8 +166,5 @@ export const handler = async (event, _) => {
         message: "Error creating interaction: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
