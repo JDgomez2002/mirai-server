@@ -121,14 +121,18 @@ export const handler = async (event, _) => {
       .collection("interactions")
       .findOne({ _id: insertedId });
 
-    const userInteractions = await db
-      .collection("interactions")
-      .find({ userId: user._id })
-      .toArray();
+    let tags = [];
 
-    // update user tags each 10 interactions
-    if (userInteractions.length % 10 === 0) {
-      // if (true) {
+    // update user tags each 7 interactions
+    // if (userInteractions.length % 7 === 0) {
+    if (true) {
+      const userInteractions = await db
+        .collection("interactions")
+        .find({ userId: user._id })
+        // get the last 7 interactions
+        .sort({ createdAt: -1 })
+        .limit(7)
+        .toArray();
       // get all tags from all interactions, from the cards in the interactions
       const cards = await db
         .collection("cards")
@@ -141,15 +145,70 @@ export const handler = async (event, _) => {
         })
         .toArray();
 
-      // get all tags from all cards in one array
-      let tags = cards.flatMap((card) => card?.display_data?.tags);
-      // there is also tags in card.tags, so we need to also add them to the tags array
-      tags = tags.concat(cards.flatMap((card) => card?.tags));
-      // remove duplicates
-      tags = [...new Set(tags)];
-      // remove tags that are not objects
-      tags = tags.filter((tag) => typeof tag === "object");
+      // Build tag objects including the corresponding interaction action
+      // Map cardId to the action by finding the interaction for that card
+      // Map cardId to all actions for that cardId, for each interaction (could be multiple per card)
+      const interactionCardIdToActions = {};
+      userInteractions.forEach((interaction) => {
+        const cardIdStr = interaction.cardId?.toString();
+        if (!interactionCardIdToActions[cardIdStr]) {
+          interactionCardIdToActions[cardIdStr] = [];
+        }
+        interactionCardIdToActions[cardIdStr].push(interaction.action);
+      });
+
+      tags = [];
+      cards.forEach((card) => {
+        const cardIdStr = card._id?.toString();
+
+        // display_data.tags
+        if (Array.isArray(card?.display_data?.tags)) {
+          card.display_data.tags.forEach((tag) => {
+            if (typeof tag === "object" && tag) {
+              tags.push({
+                ...tag,
+                actions: interactionCardIdToActions[cardIdStr] ?? [],
+              });
+            }
+          });
+        }
+        // card.tags
+        if (Array.isArray(card?.tags)) {
+          card.tags.forEach((tag) => {
+            if (typeof tag === "object" && tag) {
+              tags.push({
+                ...tag,
+                actions: interactionCardIdToActions[cardIdStr] ?? [],
+              });
+            }
+          });
+        }
+      });
+      // Remove duplicate tag references (by stringifying tag+actions)
+      tags = tags.filter(
+        (tag, index, self) =>
+          index ===
+          self.findIndex((t) => JSON.stringify(t) === JSON.stringify(tag))
+      );
+
       // TODO: Update user tags with algorithm
+
+      const INTERACTION_WEIGHTS = {
+        like: 0.3,
+        unlike: -0.3,
+        save: 0.5,
+        unsave: -0.5,
+      };
+
+      // calculate score based on the weights
+      tags = tags.map((tag) => ({
+        ...tag,
+        score:
+          tag.actions.reduce(
+            (acc, action) => acc + INTERACTION_WEIGHTS[action],
+            0
+          ) / (tag.actions.length ?? 1),
+      }));
     }
 
     return {
@@ -157,6 +216,7 @@ export const handler = async (event, _) => {
       body: JSON.stringify({
         message: "Interaction created",
         interaction,
+        tags,
       }),
     };
   } catch (error) {
