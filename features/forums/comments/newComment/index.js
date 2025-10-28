@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,11 +9,25 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
-    // Get forumId from params and userId from the current user (assume event.requestContext.authorizer.user_id)
+    // Get forumId from params and userId from the current user
     const { id: forumId } = event.pathParameters || {};
     const { content } = JSON.parse(event.body || "{}");
 
@@ -46,8 +59,13 @@ export const handler = async (event, _) => {
       };
     }
 
+    const db = (await connect()).db;
+
     // Find the forum
-    const forum = await ForumModel.findById(forumId);
+    const forum = await db
+      .collection("forums")
+      .findOne({ _id: new mongoose.Types.ObjectId(forumId) });
+
     if (!forum) {
       return {
         statusCode: 404,
@@ -57,7 +75,8 @@ export const handler = async (event, _) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    // Find the user
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -68,8 +87,9 @@ export const handler = async (event, _) => {
       };
     }
 
-    // Create the new comment
+    // Create the new comment object
     const newComment = {
+      _id: new mongoose.Types.ObjectId(),
       user_id: user._id,
       content,
       created_at: new Date(),
@@ -77,13 +97,23 @@ export const handler = async (event, _) => {
       answers: [],
     };
 
-    forum.comments.push(newComment);
-    await forum.save();
+    // Add the comment to the forum using $push
+    await db.collection("forums").updateOne(
+      { _id: forum._id },
+      {
+        $push: {
+          comments: newComment,
+        },
+      }
+    );
 
     return {
       statusCode: 201,
       body: JSON.stringify({
-        message: "Comment added successfully",
+        message: "Comment added",
+        comment: {
+          _id: newComment._id,
+        },
       }),
     };
   } catch (error) {
@@ -93,7 +123,5 @@ export const handler = async (event, _) => {
         message: "Error adding comment: " + error.message,
       }),
     };
-  } finally {
-    await mongoose.connection.close();
   }
 };
