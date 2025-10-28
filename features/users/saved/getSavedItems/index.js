@@ -1,10 +1,25 @@
 import mongoose from "mongoose";
-import { UserModel, SavedItemModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 const uri = process.env.URI;
+
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
 
 if (!uri) {
   throw new Error("URI not found in the environment");
@@ -12,8 +27,6 @@ if (!uri) {
 
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
 
     if (!userId) {
@@ -23,7 +36,9 @@ export const handler = async (event, _) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    const db = (await connect()).db;
+
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -33,7 +48,10 @@ export const handler = async (event, _) => {
     }
 
     // Get all saved items for this user
-    const items = await SavedItemModel.find({ user_id: user._id });
+    const items = await db
+      .collection("saveditems")
+      .find({ user_id: user._id })
+      .toArray();
 
     return {
       statusCode: 200,
@@ -49,7 +67,5 @@ export const handler = async (event, _) => {
         message: "Error retrieving saved items: " + error.message,
       }),
     };
-  } finally {
-    await mongoose.connection.close();
   }
 };
