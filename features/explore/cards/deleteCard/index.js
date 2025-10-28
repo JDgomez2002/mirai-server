@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CardModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +9,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
     // Get the card ID from query parameters or path parameters
     const cardId = event.pathParameters?.id || event.queryStringParameters?.id;
 
@@ -37,8 +50,12 @@ export const handler = async (event, _) => {
       };
     }
 
+    const db = (await connect()).db;
+
     // Find the card by MongoDB _id
-    const card = await CardModel.findById(cardId);
+    const card = await db
+      .collection("cards")
+      .findOne({ _id: new mongoose.Types.ObjectId(cardId) });
 
     if (!card) {
       return {
@@ -61,13 +78,12 @@ export const handler = async (event, _) => {
     }
 
     // delete the card
-    await CardModel.deleteOne({ _id: cardId });
+    await db.collection("cards").deleteOne({ _id: card._id });
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         message: "Card deleted",
-        card,
       }),
     };
   } catch (error) {
@@ -77,8 +93,5 @@ export const handler = async (event, _) => {
         message: "Error deleting card: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

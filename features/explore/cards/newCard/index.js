@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CardModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +9,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
     const { type, title, content, tags, priority, color, display_data } =
       JSON.parse(event.body);
 
@@ -43,6 +56,8 @@ export const handler = async (event, _) => {
       };
     }
 
+    const db = (await connect()).db;
+
     // if color is not provided, set it to a random color
     const colors = [
       "#FF5733",
@@ -54,7 +69,7 @@ export const handler = async (event, _) => {
     ];
 
     // Initialize card
-    const card = new CardModel({
+    const { insertedId } = await db.collection("cards").insertOne({
       type,
       title,
       content,
@@ -65,14 +80,13 @@ export const handler = async (event, _) => {
       display_data,
     });
 
-    // Create the card
-    await card.save();
-
     return {
       statusCode: 201,
       body: JSON.stringify({
         message: "Card created",
-        card,
+        card: {
+          _id: insertedId,
+        },
       }),
     };
   } catch (error) {
@@ -82,8 +96,5 @@ export const handler = async (event, _) => {
         message: "Error creating card: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

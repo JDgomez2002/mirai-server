@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CardModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +9,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
     // Get the card ID from query parameters or path parameters
     const cardId = event.pathParameters?.id || event.queryStringParameters?.id;
     const { title, content, tags, priority, color, display_data } = JSON.parse(
@@ -40,8 +53,12 @@ export const handler = async (event, _) => {
       };
     }
 
+    const db = (await connect()).db;
+
     // Find the card by MongoDB _id
-    const card = await CardModel.findById(cardId);
+    const card = await db
+      .collection("cards")
+      .findOne({ _id: new mongoose.Types.ObjectId(cardId) });
 
     if (!card) {
       return {
@@ -63,22 +80,23 @@ export const handler = async (event, _) => {
       };
     }
 
+    const data = {};
+
     // update the card just with the fields that are provided
-    if (title) card.title = title;
+    if (title) data.title = title;
     if (content) card.content = content;
-    if (tags) card.tags = tags;
-    if (priority) card.priority = priority;
-    if (color) card.color = color;
-    if (display_data) card.display_data = display_data;
+    if (tags) data.tags = tags;
+    if (priority) data.priority = priority;
+    if (color) data.color = color;
+    if (display_data) data.display_data = display_data;
 
     // save the card
-    await card.save();
+    await db.collection("cards").updateOne({ _id: card._id }, { $set: data });
 
     return {
       statusCode: 200,
       body: JSON.stringify({
         message: "Card updated",
-        card,
       }),
     };
   } catch (error) {
@@ -88,8 +106,5 @@ export const handler = async (event, _) => {
         message: "Error updating card: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

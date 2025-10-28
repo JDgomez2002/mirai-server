@@ -9,10 +9,25 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-    const db = mongoose.connection.db;
+    const db = (await connect()).db;
 
     // Get the card ID from query parameters or path parameters
     const cardId = event.pathParameters?.id || event.queryStringParameters?.id;
@@ -65,8 +80,5 @@ export const handler = async (event, _) => {
         message: "Error retrieving card: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
