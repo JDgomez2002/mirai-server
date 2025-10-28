@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,16 +9,39 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
-  try {
-    await mongoose.connect(uri);
+let conn = null;
 
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async (event, _) => {
+  try {
     // Get the forum ID from query parameters or path parameters
     const forumId = event.pathParameters?.id || event.queryStringParameters?.id;
     const { title, description, final_date } = JSON.parse(event.body);
 
     // Extract user_id from the Lambda authorizer context
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "User ID is required in the authorizer context",
+        }),
+      };
+    }
 
     // Validate that ID is provided
     if (!forumId) {
@@ -41,7 +63,9 @@ export const handler = async (event, context) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    const db = (await connect()).db;
+
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -53,7 +77,9 @@ export const handler = async (event, context) => {
     }
 
     // Find the forum by MongoDB _id
-    const forum = await ForumModel.findById(forumId);
+    const forum = await db
+      .collection("forums")
+      .findOne({ _id: new mongoose.Types.ObjectId(forumId) });
 
     if (!forum) {
       return {
@@ -81,12 +107,13 @@ export const handler = async (event, context) => {
     }
 
     // update the forum just with the fields that are provided
-    if (title) forum.title = title;
-    if (description) forum.description = description;
-    if (final_date) forum.final_date = final_date;
+    const data = {};
+    if (title) data.title = title;
+    if (description) data.description = description;
+    if (final_date) data.final_date = new Date(final_date);
 
     // save the forum
-    await forum.save();
+    await db.collection("forums").updateOne({ _id: forum._id }, { $set: data });
 
     return {
       statusCode: 200,
@@ -101,8 +128,5 @@ export const handler = async (event, context) => {
         message: "Error updating forum: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

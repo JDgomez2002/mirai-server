@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,15 +9,38 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event) => {
   try {
-    await mongoose.connect(uri);
-
     // Get the forum ID from query parameters or path parameters
     const forumId = event.pathParameters?.id || event.queryStringParameters?.id;
 
     // Extract user_id from the Lambda authorizer context
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "User ID is required in the authorizer context",
+        }),
+      };
+    }
 
     // Validate that ID is provided
     if (!forumId) {
@@ -40,7 +62,9 @@ export const handler = async (event) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    const db = (await connect()).db;
+
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -51,7 +75,10 @@ export const handler = async (event) => {
       };
     }
 
-    const forum = await ForumModel.findById(forumId);
+    // Find the forum by MongoDB _id
+    const forum = await db
+      .collection("forums")
+      .findOne({ _id: new mongoose.Types.ObjectId(forumId) });
 
     if (!forum) {
       return {
@@ -64,9 +91,12 @@ export const handler = async (event) => {
 
     // verify that the user is the creator of the forum, just admins and the creator can delete the forum
     if (
+      // check if the user is the creator of the forum
       user._id.toString() !== forum.creator_id.toString() &&
+      // check if the user is an admin
       user.role !== "admin"
     ) {
+      // if the user is not the creator of the forum and not an admin, return a forbidden error
       return {
         statusCode: 403,
         body: JSON.stringify({
@@ -77,9 +107,11 @@ export const handler = async (event) => {
     }
 
     // Attempt to delete the forum by MongoDB _id
-    const deletedForum = await ForumModel.findByIdAndDelete(forumId);
+    const result = await db
+      .collection("forums")
+      .deleteOne({ _id: new mongoose.Types.ObjectId(forumId) });
 
-    if (!deletedForum) {
+    if (result.deletedCount === 0) {
       return {
         statusCode: 404,
         body: JSON.stringify({
@@ -101,8 +133,5 @@ export const handler = async (event) => {
         message: "Error deleting forum: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

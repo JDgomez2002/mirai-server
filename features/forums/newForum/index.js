@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ForumModel, UserModel } from "./schema.js";
+import { ForumModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +10,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event) => {
   try {
-    await mongoose.connect(uri);
-
     const { title, description, career_id, final_date } = JSON.parse(
       event.body
     );
@@ -27,6 +41,7 @@ export const handler = async (event) => {
     if (!description) missingFields.push("description");
     if (!career_id) missingFields.push("career_id");
     if (!final_date) missingFields.push("final_date");
+    if (!userId) missingFields.push("userId");
 
     if (missingFields.length > 0) {
       return {
@@ -37,7 +52,18 @@ export const handler = async (event) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    if (!mongoose.Types.ObjectId.isValid(career_id)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "Invalid MongoDB ObjectId career_id format",
+        }),
+      };
+    }
+
+    const db = (await connect()).db;
+
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -58,23 +84,37 @@ export const handler = async (event) => {
       };
     }
 
+    const career = await db
+      .collection("careers")
+      .findOne({ _id: new mongoose.Types.ObjectId(career_id) });
+
+    if (!career) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: "Career not found",
+        }),
+      };
+    }
+
     // Create the forum post
-    const forum = new ForumModel({
+    const { insertedId } = await db.collection("forums").insertOne({
       title,
       description,
       creator_id: user._id,
-      career_id,
+      career_id: career._id,
       final_date: new Date(final_date ?? new Date()),
       created_at: new Date(),
-      // comments will use schema defaults
+      comments: [],
     });
-
-    await forum.save();
 
     return {
       statusCode: 201,
       body: JSON.stringify({
         message: "Forum created",
+        forum: {
+          _id: insertedId,
+        },
       }),
     };
   } catch (error) {
@@ -84,7 +124,5 @@ export const handler = async (event) => {
         message: "Error creating forum post: " + error.message,
       }),
     };
-  } finally {
-    await mongoose.connection.close();
   }
 };

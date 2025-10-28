@@ -1,6 +1,5 @@
 // @ts-nocheck
 import mongoose from "mongoose";
-import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 import { decrypt } from "./crypto.utils.js";
 
@@ -12,10 +11,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event) => {
   try {
-    await mongoose.connect(uri);
-
     // Get the forum ID from query parameters or path parameters
     const forumId = event.pathParameters?.id || event.queryStringParameters?.id;
 
@@ -39,18 +52,12 @@ export const handler = async (event) => {
       };
     }
 
-    // Find the forum by MongoDB _id
-    // populate the creator_id with user._id, user.first_name, user.last_name and user.role
-    // for both comments and answers.
-    // also populate career_id with career.nombre_carrera and career.facultad
-    const forum = await ForumModel.findById(forumId)
-      .populate("creator_id", "first_name last_name role image_url")
-      .populate("comments.user_id", "first_name last_name role image_url")
-      .populate(
-        "comments.answers.user_id",
-        "first_name last_name role image_url"
-      )
-      .populate("career_id", "nombre_carrera facultad");
+    const db = (await connect()).db;
+
+    // Find the forum by MongoDB _id (without populate since we're using native driver)
+    const forum = await db
+      .collection("forums")
+      .findOne({ _id: new mongoose.Types.ObjectId(forumId) });
 
     if (!forum) {
       return {
@@ -61,29 +68,84 @@ export const handler = async (event) => {
       };
     }
 
-    // get number of participants
-    let participants = [];
+    // Collect all user IDs we need to fetch (creator, comment users, answer users)
+    const userIds = new Set();
+    userIds.add(forum.creator_id.toString());
+
     if (forum.comments && forum.comments.length > 0) {
-      participants = await UserModel.find({
-        _id: { $in: forum.comments.map((comment) => comment.user_id) },
+      forum.comments.forEach((comment) => {
+        userIds.add(comment.user_id.toString());
+        if (comment.answers && comment.answers.length > 0) {
+          comment.answers.forEach((answer) => {
+            userIds.add(answer.user_id.toString());
+          });
+        }
       });
     }
 
-    // format comments to have user instead of user_id as key of the object
-    const comments = forum.comments.map((comment) => {
-      // also format answers to have user instead of user_id as key of the object
-      const answers = comment.answers.map((answer) => {
+    // Fetch all users in parallel in a single query for better performance
+    const userIdsArray = Array.from(userIds).map(
+      (id) => new mongoose.Types.ObjectId(id)
+    );
+    const users = await db
+      .collection("users")
+      .find({ _id: { $in: userIdsArray } })
+      .toArray();
+
+    // Create a map for quick user lookup
+    const usersMap = new Map();
+    users.forEach((user) => {
+      usersMap.set(user._id.toString(), user);
+    });
+
+    // Fetch career
+    let career = null;
+    if (forum.career_id) {
+      career = await db
+        .collection("careers")
+        .findOne(
+          { _id: new mongoose.Types.ObjectId(forum.career_id) },
+          {
+            projection: {
+              nombre_carrera: 1,
+              facultad: 1,
+              descripcion: 1,
+              duracion: 1,
+            },
+          }
+        );
+    }
+
+    // Populate creator
+    const creatorUser = usersMap.get(forum.creator_id.toString());
+    const creator = creatorUser
+      ? {
+          _id: creatorUser._id,
+          first_name: decrypt(creatorUser.first_name),
+          last_name: decrypt(creatorUser.last_name),
+          image_url: decrypt(creatorUser.image_url),
+          role: creatorUser.role,
+        }
+      : null;
+
+    // Format comments with populated users
+    const comments = (forum.comments || []).map((comment) => {
+      const commentUser = usersMap.get(comment.user_id.toString());
+      const answers = (comment.answers || []).map((answer) => {
+        const answerUser = usersMap.get(answer.user_id.toString());
         return {
           _id: answer._id,
           content: answer.content,
           created_at: answer.created_at,
-          user: {
-            _id: answer.user_id._id,
-            first_name: decrypt(answer.user_id.first_name),
-            last_name: decrypt(answer.user_id.last_name),
-            image_url: decrypt(answer.user_id.image_url),
-            role: answer.user_id.role,
-          },
+          user: answerUser
+            ? {
+                _id: answerUser._id,
+                first_name: decrypt(answerUser.first_name),
+                last_name: decrypt(answerUser.last_name),
+                image_url: decrypt(answerUser.image_url),
+                role: answerUser.role,
+              }
+            : null,
           edited: answer.edited,
         };
       });
@@ -93,28 +155,23 @@ export const handler = async (event) => {
         content: comment.content,
         created_at: comment.created_at,
         answers,
-        user: {
-          _id: comment.user_id._id,
-          first_name: decrypt(comment.user_id.first_name),
-          last_name: decrypt(comment.user_id.last_name),
-          image_url: decrypt(comment.user_id.image_url),
-          role: comment.user_id.role,
-        },
+        user: commentUser
+          ? {
+              _id: commentUser._id,
+              first_name: decrypt(commentUser.first_name),
+              last_name: decrypt(commentUser.last_name),
+              image_url: decrypt(commentUser.image_url),
+              role: commentUser.role,
+            }
+          : null,
         edited: comment.edited,
       };
     });
 
-    // format creator_id to have user instead of user_id as key of the object
-    const creator = {
-      ...forum.creator_id.toObject(),
-      first_name: decrypt(forum.creator_id.first_name),
-      last_name: decrypt(forum.creator_id.last_name),
-      image_url: decrypt(forum.creator_id.image_url),
-    };
-    // format career_id to have career instead of user_id as key of the object
-    const career = {
-      ...forum.career_id.toObject(),
-    };
+    // Calculate participants count (unique users in comments)
+    const participantsCount = new Set(
+      forum.comments?.map((comment) => comment.user_id.toString()) || []
+    ).size;
 
     return {
       statusCode: 200,
@@ -129,8 +186,8 @@ export const handler = async (event) => {
           creator,
           career,
           comments,
-          comments_count: forum.comments.length,
-          participants_count: participants.length,
+          comments_count: (forum.comments || []).length,
+          participants_count: participantsCount,
         },
       }),
     };
@@ -141,8 +198,5 @@ export const handler = async (event) => {
         message: "Error retrieving forum: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
