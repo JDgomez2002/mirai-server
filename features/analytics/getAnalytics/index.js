@@ -9,10 +9,25 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, _) => {
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async () => {
   try {
-    await mongoose.connect(uri);
-    const db = mongoose.connection.db;
+    const db = (await connect()).db;
     const usersCollection = db.collection("users");
 
     // 1. Total number of students (users with role = "student")
@@ -76,8 +91,5 @@ export const handler = async (event, _) => {
         message: "Error getting analytics: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
