@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { UserModel } from "./schema.js";
 import dotenv from "dotenv";
 import { encrypt } from "./crypto.utils.js";
 
@@ -11,10 +10,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
-  try {
-    await mongoose.connect(uri);
+let conn = null;
 
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async (event, _) => {
+  try {
     const {
       data: {
         id,
@@ -35,8 +48,10 @@ export const handler = async (event, context) => {
       };
     }
 
+    const db = (await connect()).db;
+
     // Check if user already exists
-    const existingUser = await UserModel.findOne({ clerk_id: id });
+    const existingUser = await db.collection("users").findOne({ clerk_id: id });
     if (existingUser) {
       return {
         statusCode: 409,
@@ -49,7 +64,7 @@ export const handler = async (event, context) => {
     );
 
     // initialize user
-    const user = new UserModel({
+    await db.collection("users").insertOne({
       clerk_id: id,
       first_name: encrypt(first_name),
       last_name: encrypt(last_name),
@@ -61,9 +76,6 @@ export const handler = async (event, context) => {
       quizCompletedAt: null,
       user_tags: [],
     });
-
-    // create the user
-    await user.save();
 
     return {
       statusCode: 201,
@@ -78,8 +90,5 @@ export const handler = async (event, context) => {
         message: "Error registering user: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

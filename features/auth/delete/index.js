@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import { UserModel } from "./schema.js";
 
 dotenv.config();
 
@@ -10,9 +9,25 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
+    const db = (await connect()).db;
 
     const {
       data: { id },
@@ -26,7 +41,7 @@ export const handler = async (event, context) => {
     }
 
     // Check if user exists
-    const existingUser = await UserModel.findOne({ clerk_id: id });
+    const existingUser = await db.collection("users").findOne({ clerk_id: id });
     if (!existingUser) {
       return {
         statusCode: 404,
@@ -35,7 +50,7 @@ export const handler = async (event, context) => {
     }
 
     // delete the user
-    await UserModel.deleteOne({ clerk_id: id });
+    await db.collection("users").deleteOne({ clerk_id: id });
 
     return {
       statusCode: 200,
@@ -50,8 +65,5 @@ export const handler = async (event, context) => {
         message: "Error deleting user: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
