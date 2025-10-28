@@ -114,6 +114,9 @@ export const handler = async (event, _) => {
         comment: {
           _id: newComment._id,
         },
+        forum: {
+          _id: forum._id,
+        },
       }),
     };
   } catch (error) {
