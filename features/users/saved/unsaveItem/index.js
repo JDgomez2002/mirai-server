@@ -93,6 +93,16 @@ export const handler = async (event, _) => {
     // delete the saved item
     await db.collection("saveditems").deleteOne({ _id: item._id });
 
+    // register interaction
+    await db.collection("interactions").insertOne({
+      cardId: item_id,
+      action: "unsave",
+      duration: 0,
+      metadata: {},
+      createdAt: new Date(),
+      userId: user._id,
+    });
+
     return {
       statusCode: 200,
       body: JSON.stringify({

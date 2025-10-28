@@ -78,12 +78,10 @@ export const handler = async (event, _) => {
     }
 
     // check if the item is already saved
-    const savedItem = await db
-      .collection("saveditems")
-      .findOne({
-        user_id: user._id,
-        item_id: new mongoose.Types.ObjectId(item_id),
-      });
+    const savedItem = await db.collection("saveditems").findOne({
+      user_id: user._id,
+      item_id: new mongoose.Types.ObjectId(item_id),
+    });
     if (savedItem) {
       return {
         statusCode: 400,
@@ -140,6 +138,16 @@ export const handler = async (event, _) => {
       item_id: item._id,
       saved_at: new Date(),
       item,
+    });
+
+    // register interaction
+    await db.collection("interactions").insertOne({
+      cardId: item_id,
+      action: "save",
+      duration: 0,
+      metadata: {},
+      createdAt: new Date(),
+      userId: user._id,
     });
 
     return {
