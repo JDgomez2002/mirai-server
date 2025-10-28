@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
-import { UserModel } from "./schema.js";
 import dotenv from "dotenv";
 import { decrypt } from "./crypto.utils.js";
 import { encrypt } from "./traffic.crypto.js";
+
+const encryptPIIData = true;
 
 dotenv.config();
 
@@ -12,20 +13,38 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, _) => {
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async () => {
   try {
-    await mongoose.connect(uri);
+    const db = (await connect()).db;
 
-    const allUsers = await UserModel.find({});
+    let users = await db.collection("users").find({}).toArray();
 
-    const users = allUsers.map((user) => ({
-      _id: encrypt(user._id.toString()),
-      first_name: encrypt(decrypt(user.first_name)),
-      last_name: encrypt(decrypt(user.last_name)),
-      image_url: encrypt(decrypt(user.image_url)),
-      username: encrypt(decrypt(user.username)),
-      email: encrypt(decrypt(user.email)),
-      role: encrypt(user.role),
+    users = users.map((user) => ({
+      _id: user._id,
+      first_name: handleEncryption(user.first_name, encryptPIIData),
+      last_name: handleEncryption(user.last_name, encryptPIIData),
+      image_url: handleEncryption(user.image_url, encryptPIIData),
+      username: handleEncryption(user.username, encryptPIIData),
+      email: handleEncryption(user.email, encryptPIIData),
+      role: handleEncryption(user.role, encryptPIIData),
+      tags: user.user_tags,
+      likes: user.likes ?? [],
     }));
 
     return {
@@ -41,8 +60,19 @@ export const handler = async (event, _) => {
         message: "Error getting users: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
+};
+
+const handleEncryption = (value, encryptPIIData) => {
+  if (!value) {
+    return null;
+  }
+
+  const parts = value.split(":");
+  if (parts.length !== 2) {
+    return encryptPIIData ? encrypt(value) : value;
+  }
+
+  const decryptedValue = decrypt(value);
+  return encryptPIIData ? encrypt(decryptedValue) : decryptedValue;
 };

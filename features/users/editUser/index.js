@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +9,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
 
     if (!userId) {
@@ -23,7 +36,8 @@ export const handler = async (event, _) => {
       };
     }
 
-    const user = await UserModel.findOne({ clerk_id: userId });
+    const db = (await connect()).db;
+    const user = await db.collection("users").findOne({ clerk_id: userId });
 
     if (!user) {
       return {
@@ -64,12 +78,14 @@ export const handler = async (event, _) => {
       };
     }
 
-    const userToEdit = await UserModel.findById(userIdToEdit);
+    const userToEdit = await db
+      .collection("users")
+      .findOne({ _id: new mongoose.Types.ObjectId(userIdToEdit) });
 
     if (!userToEdit) {
       return {
         statusCode: 404,
-        body: JSON.stringify({ message: "User not found" }),
+        body: JSON.stringify({ message: "User to edit not found" }),
       };
     }
     const { role } = JSON.parse(event.body);
@@ -82,15 +98,27 @@ export const handler = async (event, _) => {
     }
 
     // validate that the role is a valid role
-    if (!["admin", "teacher", "director", "student"].includes(role)) {
+    if (
+      !["admin", "teacher", "director", "student"].includes(
+        role.trim().toLowerCase()
+      )
+    ) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ message: "Invalid role" }),
+        body: JSON.stringify({
+          message:
+            "Invalid role. Must be one of: admin, teacher, director, student",
+        }),
       };
     }
 
     // update the user
-    await UserModel.updateOne({ _id: userIdToEdit }, { $set: { role } });
+    await db
+      .collection("users")
+      .updateOne(
+        { _id: new mongoose.Types.ObjectId(userIdToEdit) },
+        { $set: { role: role.trim().toLowerCase() } }
+      );
 
     return {
       statusCode: 200,
@@ -103,8 +131,5 @@ export const handler = async (event, _) => {
         message: "Error updating user: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };
