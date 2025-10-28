@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { ForumModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,11 +9,25 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
-    // Get forumId and commentId from params and userId from the current user (assume event.requestContext.authorizer.user_id)
+    // Get forumId and commentId from params and userId from the current user
     const { id: forumId, commentId, answerId } = event.pathParameters || {};
     const { content } = JSON.parse(event.body || "{}");
 
@@ -47,13 +60,19 @@ export const handler = async (event, _) => {
       return {
         statusCode: 400,
         body: JSON.stringify({
-          message: "Invalid MongoDB ObjectId for forumId or commentId",
+          message:
+            "Invalid MongoDB ObjectId for forumId, commentId, or answerId",
         }),
       };
     }
 
+    const db = (await connect()).db;
+
     // Find the forum
-    const forum = await ForumModel.findById(forumId);
+    const forum = await db
+      .collection("forums")
+      .findOne({ _id: new mongoose.Types.ObjectId(forumId) });
+
     if (!forum) {
       return {
         statusCode: 404,
@@ -64,7 +83,8 @@ export const handler = async (event, _) => {
     }
 
     // Find the comment
-    const comment = forum.comments.id(commentId);
+    const comment = forum.comments.find((c) => c._id.toString() === commentId);
+
     if (!comment) {
       return {
         statusCode: 404,
@@ -75,7 +95,8 @@ export const handler = async (event, _) => {
     }
 
     // Find the answer
-    const answer = comment.answers.id(answerId);
+    const answer = comment.answers.find((a) => a._id.toString() === answerId);
+
     if (!answer) {
       return {
         statusCode: 404,
@@ -86,7 +107,8 @@ export const handler = async (event, _) => {
     }
 
     // Find the user via clerk_id
-    const user = await UserModel.findOne({ clerk_id: userId });
+    const user = await db.collection("users").findOne({ clerk_id: userId });
+
     if (!user) {
       return {
         statusCode: 404,
@@ -96,27 +118,47 @@ export const handler = async (event, _) => {
       };
     }
 
-    // Only the author of the comment can edit it
+    // Only the author of the answer can edit it
     if (answer.user_id.toString() !== user._id.toString()) {
       return {
         statusCode: 403,
         body: JSON.stringify({
           message:
-            "You do not have permission to edit this comment. Only the author can edit it.",
+            "You do not have permission to edit this answer. Only the author can edit it.",
         }),
       };
     }
 
-    // Update the content and set edited to true
-    answer.content = content;
-    if (!answer.edited) answer.edited = true;
+    // Update the answer using arrayFilters to target the specific answer
+    const result = await db.collection("forums").updateOne(
+      { _id: forum._id },
+      {
+        $set: {
+          "comments.$[comment].answers.$[answer].content": content,
+          "comments.$[comment].answers.$[answer].edited": true,
+        },
+      },
+      {
+        arrayFilters: [
+          { "comment._id": new mongoose.Types.ObjectId(commentId) },
+          { "answer._id": new mongoose.Types.ObjectId(answerId) },
+        ],
+      }
+    );
 
-    await forum.save();
+    if (result.matchedCount === 0) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: "Answer not found in forum",
+        }),
+      };
+    }
 
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: "Answer edited successfully",
+        message: "Answer edited",
       }),
     };
   } catch (error) {
@@ -126,7 +168,5 @@ export const handler = async (event, _) => {
         message: "Error editing answer: " + error.message,
       }),
     };
-  } finally {
-    await mongoose.connection.close();
   }
 };
