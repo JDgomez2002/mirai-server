@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CareerModel, CourseModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,10 +9,24 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
-  try {
-    await mongoose.connect(uri);
+let conn = null;
 
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async (event, _) => {
+  try {
     const careerId = event.pathParameters?.id;
 
     if (!careerId) {
@@ -34,7 +47,11 @@ export const handler = async (event, context) => {
       };
     }
 
-    const career = await CareerModel.findById(careerId);
+    const db = (await connect()).db;
+
+    const career = await db
+      .collection("careers")
+      .findOne({ _id: new mongoose.Types.ObjectId(careerId) });
 
     if (!career) {
       return {
@@ -58,8 +75,5 @@ export const handler = async (event, context) => {
         message: "Error retrieving career: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

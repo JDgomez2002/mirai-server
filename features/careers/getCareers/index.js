@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CareerModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,56 +9,67 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
-export const handler = async (event, context) => {
-  try {
-    await mongoose.connect(uri);
+let conn = null;
 
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
+export const handler = async (event, _) => {
+  try {
     const { faculty, duration, name } = event.queryStringParameters || {};
 
-    // Basic implementation: return all careers, no filters
-    const allCareers = await CareerModel.find(
-      {},
-      {
-        _id: 1,
-        nombre_carrera: 1,
-        facultad: 1,
-        descripcion: 1,
-        duracion: 1,
-        empleabilidad: 1,
-      }
-    );
+    const db = (await connect()).db;
 
-    const careers = allCareers
-      // filter by faculty, duration, and name
-      .filter((career) => {
-        if (faculty) {
-          return career.facultad.toLowerCase().includes(faculty.toLowerCase());
-        }
-        return true;
+    // Build MongoDB query based on filter parameters
+    const query = {};
+
+    if (faculty) {
+      query.facultad = { $regex: faculty, $options: "i" };
+    }
+
+    if (duration) {
+      query.duracion = parseInt(duration);
+    }
+
+    if (name) {
+      query.nombre_carrera = { $regex: name, $options: "i" };
+    }
+
+    // Execute optimized query with projection
+    let careers = await db
+      .collection("careers")
+      .find(query, {
+        projection: {
+          _id: 1,
+          nombre_carrera: 1,
+          facultad: 1,
+          descripcion: 1,
+          duracion: 1,
+          empleabilidad: 1,
+        },
       })
-      .filter((career) => {
-        if (duration) {
-          return career.duracion?.toString() === duration?.toString();
-        }
-        return true;
-      })
-      .filter((career) => {
-        if (name) {
-          return career.nombre_carrera
-            .toLowerCase()
-            .includes(name.toLowerCase());
-        }
-        return true;
-      })
-      // map to the required fields
-      .map((career) => ({
-        _id: career._id,
-        name: career.nombre_carrera,
-        faculty: career.facultad,
-        description: career.descripcion,
-        duration: career.duracion,
-        employability: career.empleabilidad,
-      }));
+      .toArray();
+
+    // Map to the required fields for response
+    careers = careers.map((career) => ({
+      _id: career._id,
+      name: career.nombre_carrera,
+      faculty: career.facultad,
+      description: career.descripcion,
+      duration: career.duracion,
+      employability: career.empleabilidad,
+    }));
 
     return {
       statusCode: 200,
@@ -74,8 +84,5 @@ export const handler = async (event, context) => {
         message: "Error retrieving careers: " + error.message,
       }),
     };
-  } finally {
-    // Close the connection
-    await mongoose.connection.close();
   }
 };

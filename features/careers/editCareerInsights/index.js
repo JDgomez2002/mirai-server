@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { CareerModel, UserModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,11 +9,25 @@ if (!uri) {
   throw new Error("URI not found in the environment");
 }
 
+let conn = null;
+
+const connect = async function () {
+  if (conn == null) {
+    conn = mongoose.createConnection(uri, {
+      serverSelectionTimeoutMS: 5000,
+    });
+
+    // `await`ing connection after assigning to the `conn` variable
+    // to avoid multiple function calls creating new connections
+    await conn.asPromise();
+  }
+
+  return conn;
+};
+
 // This handler only allows editing the `insights` field of a career document
 export const handler = async (event, _) => {
   try {
-    await mongoose.connect(uri);
-
     const userId = event.requestContext?.authorizer?.lambda?.user_id;
 
     if (!userId) {
@@ -22,26 +35,6 @@ export const handler = async (event, _) => {
         statusCode: 400,
         body: JSON.stringify({
           message: "User id is required in the authorizer context",
-        }),
-      };
-    }
-
-    const user = await UserModel.findOne({ clerk_id: userId });
-
-    if (!user) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: "User not found",
-        }),
-      };
-    }
-
-    if (user.role === "student") {
-      return {
-        statusCode: 403,
-        body: JSON.stringify({
-          message: "Forbidden: Students cannot edit insights",
         }),
       };
     }
@@ -77,13 +70,34 @@ export const handler = async (event, _) => {
       };
     }
 
-    const updated = await CareerModel.findByIdAndUpdate(
-      careerId,
-      { insights },
-      { new: true }
-    );
+    const db = (await connect()).db;
 
-    if (!updated) {
+    const user = await db.collection("users").findOne({ clerk_id: userId });
+
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          message: "User not found",
+        }),
+      };
+    }
+
+    if (user.role === "student") {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({
+          message: "Forbidden: Students cannot edit insights",
+        }),
+      };
+    }
+
+    // find the career
+    const career = await db
+      .collection("careers")
+      .findOne({ _id: new mongoose.Types.ObjectId(careerId) });
+
+    if (!career) {
       return {
         statusCode: 404,
         body: JSON.stringify({
@@ -91,6 +105,11 @@ export const handler = async (event, _) => {
         }),
       };
     }
+
+    // update the career insights
+    await db
+      .collection("careers")
+      .updateOne({ _id: career._id }, { $set: { insights } });
 
     return {
       statusCode: 200,
@@ -105,7 +124,5 @@ export const handler = async (event, _) => {
         message: "Error updating insights: " + error.message,
       }),
     };
-  } finally {
-    await mongoose.connection.close();
   }
 };
