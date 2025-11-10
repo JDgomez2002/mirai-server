@@ -29,6 +29,7 @@ export const handler = async () => {
   try {
     const db = (await connect()).db;
     const usersCollection = db.collection("users");
+    const quizResultsAnalytics = await getQuizResultsAnalytics(db);
 
     // 1. Total number of students (users with role = "student")
     const totalStudents = await usersCollection.countDocuments({
@@ -82,6 +83,7 @@ export const handler = async () => {
         totalStudents,
         studentCompletedTests,
         studentsJoinedByMonth: joinedByMonth,
+        quizResultsAnalytics,
       }),
     };
   } catch (error) {
@@ -92,4 +94,96 @@ export const handler = async () => {
       }),
     };
   }
+};
+
+const getQuizResultsAnalytics = async (db) => {
+  const resultsCursor = db
+    .collection("test_results")
+    .find(
+      { trait_scores: { $exists: true, $ne: null } },
+      { projection: { trait_scores: 1 } }
+    );
+
+  const traitValues = {};
+
+  const collectTraitScores = (node, prefix = "") => {
+    if (!node || typeof node !== "object") {
+      return;
+    }
+
+    Object.entries(node).forEach(([key, value]) => {
+      const path = prefix ? `${prefix}.${key}` : key;
+
+      if (typeof value === "number" && Number.isFinite(value)) {
+        if (!traitValues[path]) {
+          traitValues[path] = [];
+        }
+
+        traitValues[path].push(value);
+        return;
+      }
+
+      if (value && typeof value === "object") {
+        collectTraitScores(value, path);
+      }
+    });
+  };
+
+  await resultsCursor.forEach((doc) => {
+    if (doc?.trait_scores) {
+      collectTraitScores(doc.trait_scores);
+    }
+  });
+
+  const analytics = {};
+
+  const calculateMean = (values) =>
+    values.reduce((sum, value) => sum + value, 0) / values.length;
+
+  const calculateMedian = (values) => {
+    const sorted = [...values].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+
+    if (sorted.length % 2 === 0) {
+      return (sorted[mid - 1] + sorted[mid]) / 2;
+    }
+
+    return sorted[mid];
+  };
+
+  const calculateMode = (values) => {
+    const counts = new Map();
+    let maxCount = 0;
+
+    values.forEach((value) => {
+      const count = (counts.get(value) ?? 0) + 1;
+      counts.set(value, count);
+      maxCount = Math.max(maxCount, count);
+    });
+
+    const modes = [...counts.entries()]
+      .filter(([, count]) => count === maxCount)
+      .map(([value]) => value)
+      .sort((a, b) => a - b);
+
+    if (maxCount === 1) {
+      return null;
+    }
+
+    return modes.length === 1 ? modes[0] : modes;
+  };
+
+  Object.entries(traitValues).forEach(([trait, values]) => {
+    if (!values.length) {
+      return;
+    }
+
+    analytics[trait] = {
+      mean: calculateMean(values),
+      median: calculateMedian(values),
+      mode: calculateMode(values),
+    };
+  });
+
+  return analytics;
 };
