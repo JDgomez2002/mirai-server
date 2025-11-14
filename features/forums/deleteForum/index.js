@@ -75,6 +75,17 @@ export const handler = async (event) => {
       };
     }
 
+    // students cant delete forums
+    if (user.role === "student") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Students can't delete forums. Only admins, directors and teachers can delete forums.",
+        }),
+      };
+    }
+
     // Find the forum by MongoDB _id
     const forum = await db
       .collection("forums")

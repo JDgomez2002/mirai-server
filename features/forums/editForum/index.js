@@ -76,6 +76,17 @@ export const handler = async (event, _) => {
       };
     }
 
+    // students cant edit forums
+    if (user.role === "student") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Students can't edit forums. Only admins, directors and teachers can edit forums.",
+        }),
+      };
+    }
+
     // Find the forum by MongoDB _id
     const forum = await db
       .collection("forums")

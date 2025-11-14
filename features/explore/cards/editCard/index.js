@@ -33,6 +33,17 @@ export const handler = async (event, _) => {
       event.body
     );
 
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "Missing required fields: [userId] (from authorizer)",
+        }),
+      };
+    }
+
     // Validate that ID is provided
     if (!cardId) {
       return {
@@ -54,6 +65,18 @@ export const handler = async (event, _) => {
     }
 
     const db = (await connect()).db;
+
+    // students cant edit cards
+    const user = await db.collection("users").findOne({ clerk_id: userId });
+    if (user.role === "student") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Students can't edit cards. Only admins, directors and teachers can edit cards.",
+        }),
+      };
+    }
 
     // Find the card by MongoDB _id
     const card = await db

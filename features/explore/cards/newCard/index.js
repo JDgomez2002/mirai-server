@@ -30,11 +30,14 @@ export const handler = async (event, _) => {
     const { type, title, content, tags, priority, color, display_data } =
       JSON.parse(event.body);
 
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
     // Validate required fields
     const missingFields = [];
     if (!type) missingFields.push("type");
     if (!title) missingFields.push("title");
     if (!content) missingFields.push("content");
+    if (!userId) missingFields.push("userId (from authorizer)");
 
     if (missingFields.length > 0) {
       return {
@@ -57,6 +60,18 @@ export const handler = async (event, _) => {
     }
 
     const db = (await connect()).db;
+
+    // students cant create cards
+    const user = await db.collection("users").findOne({ clerk_id: userId });
+    if (user.role === "student") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Students can't create cards. Only admins, directors and teachers can create cards.",
+        }),
+      };
+    }
 
     // if color is not provided, set it to a random color
     const colors = [

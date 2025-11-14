@@ -29,6 +29,16 @@ export const handler = async (event, _) => {
   try {
     // Get the card ID from query parameters or path parameters
     const cardId = event.pathParameters?.id || event.queryStringParameters?.id;
+    const userId = event.requestContext?.authorizer?.lambda?.user_id;
+
+    if (!userId) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message: "Missing required fields: [userId] (from authorizer)",
+        }),
+      };
+    }
 
     // Validate that ID is provided
     if (!cardId) {
@@ -51,6 +61,18 @@ export const handler = async (event, _) => {
     }
 
     const db = (await connect()).db;
+
+    // students cant delete cards
+    const user = await db.collection("users").findOne({ clerk_id: userId });
+    if (user.role === "student") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Students can't delete cards. Only admins, directors and teachers can delete cards.",
+        }),
+      };
+    }
 
     // Find the card by MongoDB _id
     const card = await db

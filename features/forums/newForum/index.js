@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { ForumModel } from "./schema.js";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -41,7 +40,7 @@ export const handler = async (event) => {
     if (!description) missingFields.push("description");
     if (!career_id) missingFields.push("career_id");
     if (!final_date) missingFields.push("final_date");
-    if (!userId) missingFields.push("userId");
+    if (!userId) missingFields.push("userId (from authorizer)");
 
     if (missingFields.length > 0) {
       return {
@@ -70,6 +69,17 @@ export const handler = async (event) => {
         statusCode: 404,
         body: JSON.stringify({
           message: "User not found",
+        }),
+      };
+    }
+
+    // students cant create forums
+    if (user.role === "student") {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          message:
+            "Students can't create forums. Only admins, directors and teachers can create forums.",
         }),
       };
     }
